@@ -1,0 +1,73 @@
+#include <Windows.h>
+#include "application.h"
+#include "direct3d.h"
+#include "shader.h"
+#include "texture.h"
+#include "sprite.h"
+#include "config.h"
+#include "flipbook_animation.h"
+#include "Audio.h"
+
+#include "input_keyboard.h"
+#include "input_mouse.h"
+#include "input_xinput.h"
+
+#include "game.h"
+#include "game_player.h"
+
+bool Application_Initialize(HWND hWnd)
+{
+	InitAudio();
+	//Intializing Input for Keyboard and Mouse
+	InputKeyboard_Initialize();
+	InputMouse_Initialize(hWnd);
+	InputXInput_Initialize(); //game pad
+	
+	//Initializing Direct3D
+	if (!Direct3D_Initialize(hWnd)) return false;
+
+	Shader_Initialize(Direct3D_GetDevice(), Direct3D_GetContext()); //Shader Initialize (Reading Shader file) 
+
+	FlipBookAnimation_Initialize();
+
+	Texture_Initialize();
+	
+	Sprite_Initialize();
+
+	InputMouse_SetVisible(true); // Show or Hide mouse cursor
+
+	Game_Initialize();
+
+	return true;
+}
+void Application_Finalize()
+{
+	Game_Finalize();
+	FlipBookAnimation_Finalize();
+	Sprite_Finalize();
+	Texture_Finalize();
+	Shader_Finalize();
+	Direct3D_Finalize();
+	InputMouse_Finalize();
+
+	UninitAudio();
+}
+void Application_Update(float delta_time)
+{
+	
+	InputKeyboard_Update(delta_time);
+
+	InputMouse_Update(); // this is getting the exact x and y position of the mouse cursor at the time
+	InputXInput_Update(delta_time); //this is for the controller
+
+	FlipBookAnimation_Update(delta_time);
+
+	Game_Update(delta_time);
+}
+void Application_FixedUpdate()
+{
+}
+void Application_Draw()
+{
+	Game_Draw();
+}
