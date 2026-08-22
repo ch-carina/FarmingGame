@@ -6,8 +6,6 @@
 								   Date: 2026/07/01
  ----------------------------------------------------*/
 #include "game_player_bullet.h"
-
-#include <DirectXMath.h>
 #include "game_player.h"
 #include "Audio.h"
 #include "sprite.h"
@@ -17,11 +15,14 @@
 #include "collision.h"
 #include "collision_debug.h"
 
+using namespace DirectX; 
+
 struct PlayerBullet
 {
 	float x, y; //where start shooting position is 
 	bool isShooting; //is it still shooting
 	bool isDestroyed; //is it destroyed
+	XMFLOAT2 direction; // direction of in which the bullet will travel 
 
 };
 
@@ -55,7 +56,7 @@ void GamePlayer_BulletFinalize()
 	UnloadAudio(g_AudioID_Shot);
 }
 
-void GamePlayer_BulletCreate(float x, float y)
+void GamePlayer_BulletCreate(float x, float y, XMFLOAT2 direction)
 {
 
 	if (g_BulletFireTimer > 0.0f)
@@ -73,6 +74,7 @@ void GamePlayer_BulletCreate(float x, float y)
 	r.y = y;
 	r.isShooting = true;
 	r.isDestroyed = false;
+	r.direction = direction; 
 
 	g_BulletFireCount++;
 
@@ -124,13 +126,20 @@ void GamePlayer_BulletUpdate(float delta_time)
 {
 	for (int i = 0; i < g_BulletFireCount; ++i)
 	{
-		g_Bullets[i].x += BULLET_SPEED * delta_time;
-		if (g_Bullets[i].x >= BULLET_MOVE_LIMIT_X)
+		g_Bullets[i].x += g_Bullets[i].direction.x * BULLET_SPEED * delta_time;
+		g_Bullets[i].y += g_Bullets[i].direction.y * BULLET_SPEED * delta_time;
+
+		bool offScreen =
+			g_Bullets[i].x < -BULLET_WIDTH ||
+			g_Bullets[i].x > SCREEN_WIDTH ||
+			g_Bullets[i].y < -BULLET_HEIGHT ||
+			g_Bullets[i].y > SCREEN_HEIGHT;
+
+		if (offScreen)
 		{
 			GamePlayer_BulletDestroy(i);
 		}
 	}
-
 
 	if (g_BulletFireTimer > 0.0f)
 	{

@@ -194,9 +194,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		break; 
 	
 	case WM_KEYDOWN:
-		if (wParam == VK_ESCAPE) {
-			SendMessage(hWnd, WM_CLOSE, 0, 0);
-		}
 		[[fallthrough]];
 	case WM_SYSKEYDOWN:
 	case WM_KEYUP:

@@ -35,7 +35,8 @@ struct ExplosionInfo
 static ExplosionInfo g_ExplosionInfo[ExplosionType_MAX]{
 	{ -1, 192, 192, 20, 5, 0.1f }, // enemySmallExplosion
 	{ -1, 192, 192, 20, 5, 0.1f }, // enemyBigExplosion
-	{ -1, 192, 192, 20, 5, 0.1f }  // bulletExplosion
+	{ -1, 192, 192, 20, 5, 0.1f },  // bulletExplosion
+	{ -1, 96, 96, 6, 3, 0.1f }  // waterSplashVFX
 };
 
 constexpr int EXPLOSION_MAX{ 128 };
@@ -45,7 +46,9 @@ static int g_ExplosionActiveCount{};
 static const wchar_t* EXPLOSION_TEXTURE_FILENAMES[ExplosionType_MAX]{
 	L"assets/explosion.png", // enemySmallExplosion
 	L"assets/explosion.png", // enemyBigExplosion
-	L"assets/explosion.png"  // bulletExplosion
+	L"assets/explosion.png",  // bulletExplosion
+	L"assets/Crops/waterVFX.png"  // waterSplashVFX
+
 };
 
 static int g_TextureIDs[ExplosionType_MAX]{ };

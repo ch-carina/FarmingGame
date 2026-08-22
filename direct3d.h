@@ -3,6 +3,8 @@
     Direct3DŠÖ˜A [direct3d.h]
                                                          Author : Youhei Sato
                                                          Date   : 2026/06/01
+    Note: 
+     -Added more to put to make Blur Shader work (Carina) [2026/08/13]
 --------------------------------------------------------------------------------
 
 ==============================================================================*/
@@ -37,5 +39,9 @@ ID3D11DeviceContext* Direct3D_GetContext();
 unsigned int Direct3D_GetBackBufferWidth();
 
 unsigned int Direct3D_GetBackBufferHeight();
+
+ID3D11RenderTargetView* Direct3D_GetBackBufferRTV();
+
+ID3D11DepthStencilView* Direct3D_GetDepthStencilView();
 
 #endif // DIRECT3D_H

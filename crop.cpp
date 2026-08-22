@@ -15,14 +15,32 @@
 
 #include "sprite.h"
 #include "texture.h"
+#include "explosion.h"
 
 static constexpr int CROP_MAX = 32;
 
 static Crop g_Crops[CROP_MAX];
 static int g_CropCount = 0;
 
-static constexpr float CROP_SEED_TIME = 5.0f; 
-static constexpr float CROP_SPROUT_TIME = 10.0f; 
+struct CropGrowthTiming
+{
+    float seedDuration;
+    float sproutDuration;
+    float teenDuration;
+};
+
+static constexpr CropGrowthTiming g_CropGrowthTimings[CropType_MAX] =
+{
+    { 2.0f, 3.0f, 5.0f }, // CropType_Carrot
+    { 2.0f, 2.0f, 3.0f }, // CropType_Wheat
+    { 2.0f, 4.0f, 6.0f }, // CropType_Lettuce
+    { 2.0f, 3.0f, 6.0f }, // CropType_Corn
+    { 2.0f, 6.0f, 6.0f }, // CropType_Blueberry
+};
+
+static constexpr float WATER_VFX_PLAY_DURATION = 0.6f; 
+static constexpr float WATER_VFX_PAUSE = 1.5f; 
+static constexpr float WATER_VFX_CYCLE = WATER_VFX_PLAY_DURATION + WATER_VFX_PAUSE;
 
 
 void CropInitialize()
@@ -34,6 +52,9 @@ void CropInitialize()
         g_Crops[i].growthTime = 0.0f;
         g_Crops[i].animationTimer = 0.0f;
         g_Crops[i].currentFrame = 0;
+		g_Crops[i].wateredCrop = false;
+		g_Crops[i].rank = CropRank_Normal;
+        g_Crops[i].waterVfxTimer = 0.0f; 
     }
 
     CropAnimation_Initialize();
@@ -44,12 +65,12 @@ void CropFinalize()
     CropAnimation_Finalize();
 }
 
-void CropCreate(CropType type, float x, float y)
+int CropCreate(CropType type, float x, float y)
 {
 
     if (g_CropCount >= CROP_MAX)
     {
-        return;
+        return -1;
     }
 
     Crop& crop = g_Crops[g_CropCount];
@@ -60,14 +81,21 @@ void CropCreate(CropType type, float x, float y)
     crop.y = y;
 
     crop.growthTime = 0.0f;
+	crop.growthStage = CropGrowth_Planted;
+	crop.wateredCrop = false;
+	crop.rank = CropRank_Normal;
+	crop.animationTimer = 0.0f;
+	crop.currentFrame = 0;
+	crop.isActive = true;
+    crop.waterVfxTimer = 0.0f; 
 
+    int newIndex = g_CropCount; 
     g_CropCount++;
-
+    return newIndex;
 }
 
 void CropUpdate(float deltaTime)
 {
-
 
     for (int i = 0; i < g_CropCount; i++)
     {
@@ -85,19 +113,28 @@ void CropUpdate(float deltaTime)
         // -----------------------------
         crop.growthTime += deltaTime;
 
-        if (crop.growthTime < CROP_SEED_TIME)
+        const CropGrowthTiming& timing = g_CropGrowthTimings[crop.type];
+
+        float seedTime = timing.seedDuration;
+        float sproutTime = seedTime + timing.sproutDuration;
+        float teenTime = sproutTime + timing.teenDuration;
+
+        if (crop.growthTime < seedTime)
         {
             crop.growthStage = CropGrowth_Planted;
         }
-        else if (crop.growthTime < CROP_SPROUT_TIME)
+        else if (crop.growthTime < sproutTime)
         {
             crop.growthStage = CropGrowth_Sprouted;
+        }
+        else if (crop.growthTime < teenTime)
+        {
+            crop.growthStage = CropGrowth_Teen;
         }
         else
         {
             crop.growthStage = CropGrowth_Ready;
         }
-
         // -----------------------------
         // If growth stage changed,
         // restart animation from frame 0
@@ -128,6 +165,22 @@ void CropUpdate(float deltaTime)
                 crop.currentFrame = 0;
             }
         }
+
+		//-----------------------------
+        //Update watered crop status + repeating splash VFX
+		//-----------------------------
+
+        if (crop.wateredCrop == true && crop.growthStage == CropGrowth_Ready)
+        {
+            CropAnimInfo rankAnim = CropAnimation_GetRankInfo(crop.rank);
+            crop.rankAnimTimer += deltaTime;
+            if (crop.rankAnimTimer >= rankAnim.frameRate)
+            {
+                crop.rankAnimTimer = 0.0f;
+                crop.rankFrame = (crop.rankFrame + 1) % rankAnim.frameCount;
+            }
+        }
+
     }
 }
 
@@ -164,23 +217,53 @@ void CropDraw()
             row * anim.frameHeight;
 
         Sprite_Draw(
-            anim.textureID,
-
-            crop.x,crop.y,
-
-            anim.frameWidth,anim.frameHeight,
-
+            anim.textureID,crop.x,crop.y, CROP_DISPLAY_SIZE,CROP_DISPLAY_SIZE,
             sourceX,sourceY,
+            anim.frameWidth,anim.frameHeight, 0.0f);
 
-            anim.frameWidth,anim.frameHeight,
+        if (crop.wateredCrop && crop.growthStage == CropGrowth_Ready)
+        {
+            CropAnimInfo rankAnim = CropAnimation_GetRankInfo(crop.rank);
+            int rCol = crop.rankFrame % rankAnim.columns;
+            int rRow = crop.rankFrame / rankAnim.columns;
 
-            0.0f);
+            constexpr float BADGE_SIZE = 24.0f;
+            Sprite_Draw(
+                rankAnim.textureID,
+                crop.x + CROP_DISPLAY_SIZE - BADGE_SIZE, crop.y,
+                BADGE_SIZE, BADGE_SIZE,
+                rCol * rankAnim.frameWidth, rRow * rankAnim.frameHeight,
+                rankAnim.frameWidth, rankAnim.frameHeight, 0.0f);
+        }
     }
-
-
 }
 
 const Crop& CropGet(int index)
 {
     return g_Crops[index];
+}
+
+void Crop_Destroy(int index)
+{
+	if (index < 0 || index >= g_CropCount)
+	{
+		return;
+	}
+	g_Crops[index].isActive = false;
+}
+
+void Crop_Water(int index)
+{
+	if (index < 0 || index >= g_CropCount)
+	{
+		return;
+	}
+	g_Crops[index].wateredCrop = true;
+    g_Crops[index].waterVfxTimer = 0.0f; 
+    Explosion_Create(waterSplashVFX, g_Crops[index].x, g_Crops[index].y, false);
+}
+
+int Crop_GetRank(int index)
+{
+    return g_Crops[index].rank;
 }

@@ -22,6 +22,8 @@ struct CollisionBox
 {
 	float width; 
 	float height; 
+	float x;
+	float y;
 };
 
 bool CollisionCircle_IsOverlap(const CollisionCircle& circle1, const CollisionCircle& circle2);

@@ -14,48 +14,61 @@
 #include "crop.h"
 #include "sprite.h"
 #include "texture.h"
+#include "collision.h"
+#include"game_player.h"
+#include "config.h"
+#include <algorithm>
 
-static constexpr int PLOT_COUNT = 6;
+using namespace std;
 
-static CropPlot g_CropPlots[PLOT_COUNT];
+static constexpr int MAX_PLOTS = 64;   // generous ceiling across all levels; raise if a level needs more
+
+static CropPlot g_CropPlots[MAX_PLOTS];
+static int g_PlotCount = 0;
+
+constexpr float PLOT_SIZE = 96.0f;
 
 static int g_PlotTextures[PlotType_MAX];
 
 const wchar_t* dirtFiles[PlotType_MAX] =
 {
-    L"assets/GroundTiles/Dirt/Dirt_BL.png",
-    L"assets/GroundTiles/Dirt/Dirt_BC.png",
-    L"assets/GroundTiles/Dirt/Dirt_BR.png",
-
     L"assets/GroundTiles/Dirt/Dirt_TL.png",
     L"assets/GroundTiles/Dirt/Dirt_TC.png",
     L"assets/GroundTiles/Dirt/Dirt_TR.png",
 
+
     L"assets/GroundTiles/Dirt/Dirt_ML.png",
+    L"assets/GroundTiles/Dirt/Dirt_Center.png",
     L"assets/GroundTiles/Dirt/Dirt_MR.png",
-    L"assets/GroundTiles/Dirt/Dirt_Center.png"
+
+    L"assets/GroundTiles/Dirt/Dirt_BL.png",
+    L"assets/GroundTiles/Dirt/Dirt_BC.png",
+    L"assets/GroundTiles/Dirt/Dirt_BR.png"
 };
+
+CropPlot* CropPlot_Get(int index)
+{
+    if (index < 0 || index >= g_PlotCount)
+    {
+        return nullptr;
+    }
+
+    return &g_CropPlots[index];
+}
+
+int CropPlot_GetCount()
+{
+    return g_PlotCount;
+}
 
 void CropPlot_Initialize()
 {
     for (int i = 0; i < PlotType_MAX; i++)
     {
-        g_PlotTextures[i] =
-            Texture_Load(dirtFiles[i], true);
+        g_PlotTextures[i] = Texture_Load(dirtFiles[i], true);
     }
 
-    float startX = 300.0f;
-    float startY = 550.0f;
-    float spacing = 100.0f;
-
-    for (int i = 0; i < PLOT_COUNT; i++)
-    {
-        g_CropPlots[i].x = startX + (spacing * i);
-        g_CropPlots[i].y = startY;
-
-        g_CropPlots[i].occupied = false;
-        g_CropPlots[i].cropType = CropType_Carrot;
-    }
+    g_PlotCount = 0;
 
 }
 
@@ -65,23 +78,66 @@ void CropPlot_Update()
 
 void CropPlot_Draw()
 {
-
-    for (int i = 0; i < PLOT_COUNT; i++)
+    for (int i = 0; i < g_PlotCount; i++)
     {
         int textureID =
             g_PlotTextures[g_CropPlots[i].plotType];
 
         Sprite_Draw(
-            textureID,g_CropPlots[i].x,g_CropPlots[i].y,64,64,0,0,64,64,0.0f
+            textureID, g_CropPlots[i].x, g_CropPlots[i].y, 96, 96, 0, 0, 96, 96, 0.0f
         );
     }
+}
 
+void CropPlot_LoadRegions(const PlotRegion regions[], int regionCount)
+{
+    g_PlotCount = 0;
+
+    for (int r = 0; r < regionCount; r++)
+    {
+        const PlotRegion& region = regions[r];
+
+        for (int row = 0; row < region.height; row++)
+        {
+            for (int col = 0; col < region.width; col++)
+            {
+                if (g_PlotCount >= MAX_PLOTS)
+                {
+                    return; // safety: stop rather than overflow the fixed-size array
+                }
+
+                CropPlot& plot = g_CropPlots[g_PlotCount];
+
+                plot.x = (region.gridX + col) * PLOT_SIZE;
+                plot.y = (region.gridY + row) * PLOT_SIZE;
+
+                plot.cropCollision = { PLOT_SIZE, PLOT_SIZE, plot.x, plot.y };
+
+                plot.occupied = false;
+                plot.spawnCooldownTimer = 0.0f;
+                plot.hasActiveEnemy = false;
+
+                // same border classification as before, now using THIS region's own width/height
+                if (row == 0 && col == 0)                                  plot.plotType = PlotType_DirtTL;
+                else if (row == 0 && col == region.width - 1)              plot.plotType = PlotType_DirtTR;
+                else if (row == region.height - 1 && col == 0)             plot.plotType = PlotType_DirtBL;
+                else if (row == region.height - 1 && col == region.width - 1) plot.plotType = PlotType_DirtBR;
+                else if (row == 0)                                          plot.plotType = PlotType_DirtTC;
+                else if (row == region.height - 1)                          plot.plotType = PlotType_DirtBC;
+                else if (col == 0)                                          plot.plotType = PlotType_DirtML;
+                else if (col == region.width - 1)                           plot.plotType = PlotType_DirtMR;
+                else                                                        plot.plotType = PlotType_DirtC;
+
+                g_PlotCount++;
+            }
+        }
+    }
 }
 
 void CropPlot_Plant(int index, CropType cropType)
 {
 
-    if (index < 0 || index >= PLOT_COUNT)
+    if (index < 0 || index >= g_PlotCount)
     {
         return;
     }
@@ -94,32 +150,61 @@ void CropPlot_Plant(int index, CropType cropType)
     g_CropPlots[index].occupied = true;
     g_CropPlots[index].cropType = cropType;
 
-    CropCreate(
+	constexpr float CROP_OFFSET = (PLOT_SIZE - CROP_DISPLAY_SIZE) * 0.5f;
+
+    g_CropPlots[index].cropIndex = CropCreate(
         cropType,
-        g_CropPlots[index].x,
-        g_CropPlots[index].y
+        g_CropPlots[index].x + CROP_OFFSET,
+        g_CropPlots[index].y + CROP_OFFSET
     );
 
 }
 
 void CropPlot_Harvest(int index)
 {
+    if (index < 0 || index >= g_PlotCount) return;
 
-    if (index < 0 || index >= PLOT_COUNT)
-    {
-        return;
-    }
+    Crop_Destroy(g_CropPlots[index].cropIndex);
 
     g_CropPlots[index].occupied = false;
-
+    g_CropPlots[index].hasActiveEnemy = false;
+    g_CropPlots[index].spawnCooldownTimer = 0.0f;
+    g_CropPlots[index].cropIndex = -1;
 }
 
-const CropPlot& CropPlot_Get(int index)
+//check if player is in a crop plot area
+bool CircleVsBox(const CollisionCircle& playerCollision, const CollisionBox& cropPlotBox)
 {
-    return g_CropPlots[index];
+    float closestX = std::max(cropPlotBox.x,
+        std::min(playerCollision.center.x, cropPlotBox.x + cropPlotBox.width));
+
+    float closestY = std::max(cropPlotBox.y,
+        std::min(playerCollision.center.y, cropPlotBox.y + cropPlotBox.height));
+
+    float dx = playerCollision.center.x - closestX;
+    float dy = playerCollision.center.y - closestY;
+
+    return (dx * dx + dy * dy) <=
+        (playerCollision.radius * playerCollision.radius);
 }
 
-int CropPlot_GetCount()
+int CropPlot_GetPlayerPlot()
 {
-    return PLOT_COUNT;
+    CollisionCircle playerCircle =
+        GamePlayer_GetCollisionCircle();
+
+    for (int i = 0; i < g_PlotCount; i++)
+    {
+        if (CircleVsBox(playerCircle,
+            g_CropPlots[i].cropCollision))
+        {
+            return i;
+        }
+    }
+    return -1;
+}
+
+CollisionBox CropPlot_GetCollision(int index)
+{
+    return g_CropPlots[index].cropCollision;
 }

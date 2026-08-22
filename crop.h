@@ -31,6 +31,13 @@ enum CropGrowthState
     CropGrowth_MAX
 };
 
+enum CropRank
+{
+    CropRank_Normal, //not a watered crop 
+    CropRank_Watered, //watered crop 
+    CropRank_MAX
+};
+
 struct Crop
 {
     CropType type; 
@@ -39,7 +46,9 @@ struct Crop
     float growthTime; 
     CropGrowthState growthStage;
     
-    bool greatCrop; 
+    bool wateredCrop; 
+    CropRank rank;
+    float waterVfxTimer;
     
     int cropCost; 
     int cropProfit; 
@@ -47,18 +56,29 @@ struct Crop
     float animationTimer;
     int currentFrame;
 
+    float rankAnimTimer;
+    int   rankFrame;
+
     bool isActive;
 };
 
+constexpr float CROP_DISPLAY_SIZE = 64.0f; //Size of crop sprite when drawn on screen
 
 void CropInitialize();
 
 void CropFinalize();
 
-void CropCreate(CropType type, float x, float y);
+int CropCreate(CropType type, float x, float y);
 
 void CropUpdate(float deltaTime);
+
 void CropDraw();
+
+void Crop_Destroy(int index); 
+
+void Crop_Water(int index);
+
+int Crop_GetRank(int index);
 
 const Crop& CropGet(int index);
 

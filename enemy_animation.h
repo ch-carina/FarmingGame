@@ -37,6 +37,8 @@ struct EnemySpriteInfo
 
 void EnemyAnimation_Initialize();
 
+void EnemyAnimation_Finalize();
+
 void EnemyAnimation_Update(Enemy& enemy, float deltaTime);
 
 AnimInfo EnemyAnimation_GetInfo(EnemyType type, EnemyAnimState state);

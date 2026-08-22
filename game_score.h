@@ -16,7 +16,6 @@ void GameScore_Initialize(int digit); //you can choose weather if you you want t
 void GameScore_Finalize();
 void GameScore_SetScore(int score); 
 void GameScore_Update(float delta_time);
-void GameScore_Draw(float x, float y 
-    , const DirectX::XMFLOAT4 color = { 1.0f, 1.0f, 1.0f, 1.0f });
+void GameScore_Draw(const DirectX::XMFLOAT4 color = { 1.0f, 1.0f, 1.0f, 1.0f });
 
 #endif // GAME_SCORE_H

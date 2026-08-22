@@ -3,6 +3,9 @@
    Direct3D11用 デバッグテキスト表示 [debug_text.cpp]
 														 Author : Youhei Sato
 														 Date   : 2025/06/15
+
+	Note: 
+	Started editing this for own use to use it for all fonts within Game - Carina
 --------------------------------------------------------------------------------
 
 ==============================================================================*/
@@ -28,8 +31,10 @@ namespace hal
 	ComPtr<ID3D11PixelShader> DebugText::m_pPixelShader;
 	ComPtr<ID3D11SamplerState> DebugText::m_pSamplerState;
 
-	DebugText::DebugText(ID3D11Device* pDevice, ID3D11DeviceContext* pContext, const wchar_t* pFontTextureFileName, UINT screenWidth, UINT screenHeight, float offsetX, float offsetY, ULONG maxLine, ULONG maxCharactersPerLine, float lineSpacing, float characterSpacing)
-		: m_pDevice(pDevice), m_pContext(pContext), m_FileName(pFontTextureFileName), m_OffsetX(offsetX), m_OffsetY(offsetY), m_MaxLine(maxLine), m_MaxCharactersPerLine(maxCharactersPerLine), m_LineSpacing(lineSpacing), m_CharacterSpacing(characterSpacing)
+	DebugText::DebugText(ID3D11Device* pDevice, ID3D11DeviceContext* pContext, const wchar_t* pFontTextureFileName, UINT screenWidth, UINT screenHeight, float offsetX, float offsetY, ULONG maxLine, ULONG maxCharactersPerLine, float lineSpacing, float characterSpacing, int columns, int rows, float scale)
+		: m_pDevice(pDevice), m_pContext(pContext), m_FileName(pFontTextureFileName), m_OffsetX(offsetX), m_OffsetY(offsetY),
+		m_MaxLine(maxLine), m_MaxCharactersPerLine(maxCharactersPerLine), m_LineSpacing(lineSpacing), m_CharacterSpacing(characterSpacing),
+		m_Columns(columns), m_Rows(rows), m_Scale(scale)
 	{
 		auto it = m_TextureMap.find(pFontTextureFileName);
 
@@ -54,11 +59,11 @@ namespace hal
 		m_TextureHeight = texture2d_desc.Height;
 
 		if (!m_LineSpacing) {
-			m_LineSpacing = m_TextureHeight / 16.0f; // 16行あるため、1行あたりの高さを設定
+			m_LineSpacing = (m_TextureHeight / (float)m_Rows) * m_Scale;
 		}
 
 		if (!m_CharacterSpacing) {
-			m_CharacterSpacing = m_TextureWidth / 16.0f; // 16列あるため、1文字あたりの幅を設定
+			m_CharacterSpacing = (m_TextureWidth / (float)m_Columns) * m_Scale;
 		}
 
 		m_TextLines.emplace_back();
@@ -290,8 +295,8 @@ namespace hal
 		// 頂点情報の構築
 		UINT lineCount = 0;
 		WORD characterCount = 0;
-		const float characterWidth = m_TextureWidth / 16.0f;
-		const float characterHeight = m_TextureHeight / 16.0f;
+		const float characterWidth = (m_TextureWidth / (float)m_Columns) * m_Scale;
+		const float characterHeight = (m_TextureHeight / (float)m_Rows) * m_Scale;
 
 		for (const auto& strings : m_TextLines) {
 
@@ -304,10 +309,10 @@ namespace hal
 					int index = code - ' ';
 
 					if (index) {
-						float u0 = (index % 16) / 16.0f;
-						float v0 = (index / 16) / 16.0f;
-						float u1 = (index % 16 + 1) / 16.0f;
-						float v1 = (index / 16 + 1) / 16.0f;
+						float u0 = (index % m_Columns) / (float)m_Columns;
+						float v0 = (index / m_Columns) / (float)m_Rows;
+						float u1 = (index % m_Columns + 1) / (float)m_Columns;
+						float v1 = (index / m_Columns + 1) / (float)m_Rows;
 						float x = m_OffsetX + columnCount * m_CharacterSpacing;
 						float y = m_OffsetY + lineCount * m_LineSpacing;
 

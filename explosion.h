@@ -3,6 +3,9 @@
 
  explosion.h
  manages explosion effects in game 
+
+ 08/07 - Changed this to generic VFX in general 
+
 								   Author: Carina Chao
 								   Date: 2026/07/06
  ----------------------------------------------------*/
@@ -17,6 +20,7 @@ enum ExplosionType
 	enemySmallExplosion,
 	enemyBigExplosion,
 	bulletExplosion,
+	waterSplashVFX,
 	ExplosionType_MAX //senseis is called kExplosionMax
 };
 

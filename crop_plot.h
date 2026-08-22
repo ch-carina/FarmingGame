@@ -11,19 +11,32 @@
 #define CROP_PLOT_H		
 #include <DirectXMath.h>
 #include "crop.h"
+#include "collision.h"
 
 enum PlotType
 {
+
+    PlotType_DirtTL,
+    PlotType_DirtTC,
+    PlotType_DirtTR,
+
+    PlotType_DirtML,
+    PlotType_DirtC,
+    PlotType_DirtMR,
+
     PlotType_DirtBL,
     PlotType_DirtBC,
     PlotType_DirtBR,
-    PlotType_DirtTL,
-    PlotType_DirtTR,
-    PlotType_DirtTC,
-    PlotType_DirtML,
-    PlotType_DirtMR,
-    PlotType_DirtC,
+
     PlotType_MAX
+
+
+};
+
+struct PlotRegion
+{
+    int gridX, gridY;   // top-left corner, in tile units (not pixels)
+    int width, height;  // size, in tiles
 };
 
 struct CropPlot
@@ -31,18 +44,32 @@ struct CropPlot
     float x, y; 
 
     bool occupied; 
+    float spawnCooldownTimer;
+    bool hasActiveEnemy; 
+
+    int cropIndex;
 
     CropType cropType;
     PlotType plotType; 
+    
+    CollisionBox cropCollision;
 };
 
+CropPlot* CropPlot_Get(int index);
+
+int CropPlot_GetCount();
 
 void CropPlot_Initialize();
 void CropPlot_Update();
 void CropPlot_Draw();
 
+void CropPlot_LoadRegions(const PlotRegion regions[], int regionCount);
+
 void CropPlot_Plant(int index, CropType cropType);
 void CropPlot_Harvest(int index);
 
+bool CircleVsBox(const CollisionCircle& playerCollision, const CollisionBox& cropPlotBox);
+int CropPlot_GetPlayerPlot();
+CollisionBox CropPlot_GetCollision(int index);
 
 #endif //CROP_PLOT_H

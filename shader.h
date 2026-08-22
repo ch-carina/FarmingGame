@@ -3,6 +3,8 @@
    シェーダー [shader.h]
 														 Author : Youhei Sato
 														 Date   : 2025/05/15
+	Note: 
+	- Added thing to make blur shader work (Carina) [2026/08/13] 
 --------------------------------------------------------------------------------
 
 ==============================================================================*/
@@ -18,5 +20,9 @@ void Shader_Finalize();
 void Shader_SetMatrix(const DirectX::XMMATRIX& matrix);
 
 void Shader_Begin();
+
+void Shader_LoadBlurPixelShader();
+void Shader_BeginBlur();
+void Shader_SetBlurParams(const DirectX::XMFLOAT2& texelSize, const DirectX::XMFLOAT2& direction);
 
 #endif // SHADER_H

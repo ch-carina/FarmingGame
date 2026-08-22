@@ -1,7 +1,8 @@
 #ifndef GAME_PLAYER_BULLET
 #define GAME_PLAYER_BULLET
-#include <DirectXMath.h>
 #include "collision.h"
+
+#include <DirectXMath.h>
 
 
 void GamePlayer_BulletInitialize();
@@ -12,7 +13,7 @@ void GamePlayer_BulletUpdate(float delta_time);
 
 void GamePlayer_BulletDraw();
 
-void GamePlayer_BulletCreate(float x, float y); 
+void GamePlayer_BulletCreate(float x, float y, DirectX::XMFLOAT2 direction);
 
 int GamePlayer_BulletGetCount(); 
 

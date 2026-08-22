@@ -3,6 +3,9 @@
    Direct3D11用 デバッグテキスト表示 [debug_text.h]
 														 Author : Youhei Sato
 														 Date   : 2025/06/15
+
+	Note: 
+	Adding my own stuff in so that I can use it as a font handler - Carina 
 --------------------------------------------------------------------------------
 
 ==============================================================================*/
@@ -33,6 +36,9 @@ namespace hal
 		ULONG m_MaxCharactersPerLine{ 0 }; // 1行あたりの最大文字数
 		float m_LineSpacing{ 0.0f }; // 行の間隔
 		float m_CharacterSpacing{ 0.0f }; // 文字の間隔
+		int m_Columns{ 16 };
+		int m_Rows{ 16 };
+		float m_Scale{ 1.0f };
 
 		struct Characters { 
 			Characters(const DirectX::XMFLOAT4& color) : color(color) {}
@@ -75,7 +81,7 @@ namespace hal
 
 	public:
 		DebugText() = delete;
-		DebugText(ID3D11Device* pDevice, ID3D11DeviceContext* pContext, const wchar_t* pFontTextureFileName, UINT screenWidth, UINT screenHeight, float offsetX = 0.0f, float offsetY = 0.0f, ULONG maxLine = 0, ULONG maxCharactersPerLine = 0, float lineSpacing = 0.0f, float characterSpacing = 0.0f);
+		DebugText(ID3D11Device* pDevice, ID3D11DeviceContext* pContext, const wchar_t* pFontTextureFileName, UINT screenWidth, UINT screenHeight, float offsetX = 0.0f, float offsetY = 0.0f, ULONG maxLine = 0, ULONG maxCharactersPerLine = 0, float lineSpacing = 0.0f, float characterSpacing = 0.0f, int columns = 16, int rows = 16, float scale = 1.0f);
 		~DebugText();
 
 		// 文字列の登録（描画可能な文字、改行、タブなどに対応）

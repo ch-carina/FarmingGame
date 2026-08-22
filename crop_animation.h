@@ -37,4 +37,5 @@ CropAnimInfo CropAnimation_GetInfo(
     CropType type,
     CropGrowthState stage);
 
+CropAnimInfo CropAnimation_GetRankInfo(CropRank rank);
 #endif

@@ -135,6 +135,16 @@ ID3D11DeviceContext* Direct3D_GetContext()
     return g_pDeviceContext;
 }
 
+ID3D11RenderTargetView* Direct3D_GetBackBufferRTV()
+{
+    return g_pRenderTargetView;
+}
+
+ID3D11DepthStencilView* Direct3D_GetDepthStencilView()
+{
+    return g_pDepthStencilView;
+}
+
 bool createBackBuffer()
 {
     HRESULT hr;

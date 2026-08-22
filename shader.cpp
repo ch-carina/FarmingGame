@@ -4,12 +4,15 @@
  Shader.cpp
 								   Author: Carina Chao
 								   Date: 2026/06/28
+ Note: 
+ - Adding Blur Shader Information [2026/08/13] 
  ----------------------------------------------------*/
 #include <d3d11.h>
 #include <DirectXMath.h>
 #include "direct3d.h"
 #include "debug_ostream.h"
 #include <fstream>
+#include "shader.h"
 
 using namespace DirectX;
 
@@ -17,6 +20,8 @@ static ID3D11VertexShader* g_pVertexShader = nullptr;
 static ID3D11InputLayout* g_pInputLayout = nullptr;
 static ID3D11Buffer* g_pVSConstantBuffer = nullptr;
 static ID3D11PixelShader* g_pPixelShader = nullptr;
+static ID3D11PixelShader* g_pBlurPixelShader = nullptr;
+static ID3D11Buffer* g_pBlurConstantBuffer = nullptr;
 
 // 注意！初期化で外部から設定されるもの。Release不要。
 static ID3D11Device* g_pDevice = nullptr;
@@ -120,11 +125,15 @@ bool Shader_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 		return false;
 	}
 
+	Shader_LoadBlurPixelShader();
+
 	return true;
 }
 
 void Shader_Finalize()
 {
+	SAFE_RELEASE(g_pBlurConstantBuffer);
+	SAFE_RELEASE(g_pBlurPixelShader);
 	SAFE_RELEASE(g_pPixelShader);
 	SAFE_RELEASE(g_pVSConstantBuffer);
 	SAFE_RELEASE(g_pInputLayout);
@@ -154,4 +163,44 @@ void Shader_Begin()
 
 	// 定数バッファを描画パイプラインに設定
 	g_pContext->VSSetConstantBuffers(0, 1, &g_pVSConstantBuffer);
+}
+
+void Shader_LoadBlurPixelShader()
+{
+	std::ifstream ifs_ps("shader_pixel_blur.cso", std::ios::binary);
+	if (!ifs_ps) {
+		MessageBox(nullptr, "ピクセルシェーダーの読み込みに失敗しました\n\nshader_pixel_blur.cso", "エラー", MB_OK);
+		return;
+	}
+
+	ifs_ps.seekg(0, std::ios::end);
+	std::streamsize filesize = ifs_ps.tellg();
+	ifs_ps.seekg(0, std::ios::beg);
+
+	unsigned char* psbinary_pointer = new unsigned char[filesize];
+	ifs_ps.read((char*)psbinary_pointer, filesize);
+	ifs_ps.close();
+
+	g_pDevice->CreatePixelShader(psbinary_pointer, filesize, nullptr, &g_pBlurPixelShader);
+	delete[] psbinary_pointer;
+
+	D3D11_BUFFER_DESC buffer_desc{};
+	buffer_desc.ByteWidth = sizeof(XMFLOAT4); // texelSize.xy + direction.xy
+	buffer_desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	g_pDevice->CreateBuffer(&buffer_desc, nullptr, &g_pBlurConstantBuffer);
+}
+
+void Shader_BeginBlur()
+{
+	g_pContext->VSSetShader(g_pVertexShader, nullptr, 0);
+	g_pContext->PSSetShader(g_pBlurPixelShader, nullptr, 0);
+	g_pContext->IASetInputLayout(g_pInputLayout);
+	g_pContext->VSSetConstantBuffers(0, 1, &g_pVSConstantBuffer);
+}
+
+void Shader_SetBlurParams(const DirectX::XMFLOAT2& texelSize, const DirectX::XMFLOAT2& direction)
+{
+	XMFLOAT4 params{ texelSize.x, texelSize.y, direction.x, direction.y };
+	g_pContext->UpdateSubresource(g_pBlurConstantBuffer, 0, nullptr, &params, 0, 0);
+	g_pContext->PSSetConstantBuffers(0, 1, &g_pBlurConstantBuffer);
 }

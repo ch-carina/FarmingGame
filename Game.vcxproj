@@ -169,28 +169,40 @@ xcopy "$(ProjectDir)assets" "$(OutDir)assets" /E /I /Y</Command>
   <ItemGroup>
     <ClCompile Include="application.cpp" />
     <ClCompile Include="Audio.cpp" />
+    <ClCompile Include="blur.cpp" />
     <ClCompile Include="collision.cpp" />
     <ClCompile Include="collision_debug.cpp" />
     <ClCompile Include="crop.cpp" />
     <ClCompile Include="crop_animation.cpp" />
     <ClCompile Include="crop_plot.cpp" />
+    <ClCompile Include="damage_flash.cpp" />
     <ClCompile Include="debug_text.cpp" />
     <ClCompile Include="direct3d.cpp" />
     <ClCompile Include="enemy.cpp" />
     <ClCompile Include="enemy_animation.cpp" />
     <ClCompile Include="explosion.cpp" />
+    <ClCompile Include="fade.cpp" />
     <ClCompile Include="flipbook_animation.cpp" />
+    <ClCompile Include="font.cpp" />
     <ClCompile Include="game.cpp" />
     <ClCompile Include="game_player.cpp" />
     <ClCompile Include="game_player_bullet.cpp" />
     <ClCompile Include="game_score.cpp" />
+    <ClCompile Include="ground.cpp" />
     <ClCompile Include="input_keyboard.cpp" />
     <ClCompile Include="input_mouse.cpp" />
     <ClCompile Include="input_xinput.cpp" />
+    <ClCompile Include="inventory.cpp" />
     <ClCompile Include="keyboard.cpp" />
+    <ClCompile Include="level.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="menu.cpp" />
     <ClCompile Include="mouse.cpp" />
+    <ClCompile Include="results.cpp" />
+    <ClCompile Include="scene.cpp" />
+    <ClCompile Include="sellBox.cpp" />
     <ClCompile Include="shader.cpp" />
+    <ClCompile Include="shop.cpp" />
     <ClCompile Include="sprite.cpp" />
     <ClCompile Include="system_timer.cpp" />
     <ClCompile Include="texture.cpp" />
@@ -199,12 +211,14 @@ xcopy "$(ProjectDir)assets" "$(OutDir)assets" /E /I /Y</Command>
   <ItemGroup>
     <ClInclude Include="application.h" />
     <ClInclude Include="Audio.h" />
+    <ClInclude Include="blur.h" />
     <ClInclude Include="collision.h" />
     <ClInclude Include="collision_debug.h" />
     <ClInclude Include="config.h" />
     <ClInclude Include="crop.h" />
     <ClInclude Include="crop_animation.h" />
     <ClInclude Include="crop_plot.h" />
+    <ClInclude Include="damage_flash.h" />
     <ClInclude Include="debug_ostream _update.h" />
     <ClInclude Include="debug_ostream.h" />
     <ClInclude Include="debug_text.h" />
@@ -212,17 +226,27 @@ xcopy "$(ProjectDir)assets" "$(OutDir)assets" /E /I /Y</Command>
     <ClInclude Include="enemy.h" />
     <ClInclude Include="enemy_animation.h" />
     <ClInclude Include="explosion.h" />
+    <ClInclude Include="fade.h" />
     <ClInclude Include="flipbook_animation.h" />
+    <ClInclude Include="font.h" />
     <ClInclude Include="game.h" />
     <ClInclude Include="game_player.h" />
     <ClInclude Include="game_player_bullet.h" />
     <ClInclude Include="game_score.h" />
+    <ClInclude Include="ground.h" />
     <ClInclude Include="input_keyboard.h" />
     <ClInclude Include="input_mouse.h" />
     <ClInclude Include="input_xinput.h" />
+    <ClInclude Include="inventory.h" />
     <ClInclude Include="keyboard.h" />
+    <ClInclude Include="level.h" />
+    <ClInclude Include="menu.h" />
     <ClInclude Include="mouse.h" />
+    <ClInclude Include="results.h" />
+    <ClInclude Include="scene.h" />
+    <ClInclude Include="sellBox.h" />
     <ClInclude Include="shader.h" />
+    <ClInclude Include="shop.h" />
     <ClInclude Include="sprite.h" />
     <ClInclude Include="system_timer.h" />
     <ClInclude Include="texture.h" />
@@ -236,6 +260,12 @@ xcopy "$(ProjectDir)assets" "$(OutDir)assets" /E /I /Y</Command>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+    </FxCompile>
+    <FxCompile Include="shader_pixel_blur.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
     <FxCompile Include="shader_vertex_2d.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
