@@ -192,8 +192,6 @@ xcopy "$(ProjectDir)assets" "$(OutDir)assets" /E /I /Y</Command>
     <ClCompile Include="game_score.cpp" />
     <ClCompile Include="ground.cpp" />
     <ClCompile Include="input_keyboard.cpp" />
-    <ClCompile Include="input_mouse.cpp" />
-    <ClCompile Include="input_xinput.cpp" />
     <ClCompile Include="inventory.cpp" />
     <ClCompile Include="keyboard.cpp" />
     <ClCompile Include="level.cpp" />
@@ -239,8 +237,6 @@ xcopy "$(ProjectDir)assets" "$(OutDir)assets" /E /I /Y</Command>
     <ClInclude Include="game_score.h" />
     <ClInclude Include="ground.h" />
     <ClInclude Include="input_keyboard.h" />
-    <ClInclude Include="input_mouse.h" />
-    <ClInclude Include="input_xinput.h" />
     <ClInclude Include="inventory.h" />
     <ClInclude Include="keyboard.h" />
     <ClInclude Include="level.h" />

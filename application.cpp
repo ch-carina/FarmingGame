@@ -10,8 +10,6 @@
 #include "fade.h"
 
 #include "input_keyboard.h"
-#include "input_mouse.h"
-#include "input_xinput.h"
 
 #include "scene.h"
 #include "game.h"
