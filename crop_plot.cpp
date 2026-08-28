@@ -25,9 +25,6 @@ static constexpr int MAX_PLOTS = 64;   // generous ceiling across all levels; ra
 
 static CropPlot g_CropPlots[MAX_PLOTS];
 static int g_PlotCount = 0;
-
-constexpr float PLOT_SIZE = 96.0f;
-
 static int g_PlotTextures[PlotType_MAX];
 
 const wchar_t* dirtFiles[PlotType_MAX] =
@@ -197,6 +194,18 @@ int CropPlot_GetPlayerPlot()
     {
         if (CircleVsBox(playerCircle,
             g_CropPlots[i].cropCollision))
+        {
+            return i;
+        }
+    }
+    return -1;
+}
+
+int CropPlot_GetIndexAt(float x, float y)
+{
+    for (int i = 0; i < g_PlotCount; i++)
+    {
+        if (g_CropPlots[i].x == x && g_CropPlots[i].y == y)
         {
             return i;
         }

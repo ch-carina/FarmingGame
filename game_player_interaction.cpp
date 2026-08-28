@@ -4,6 +4,7 @@
 #include "shop.h"
 #include "sellBox.h"
 #include "input_keyboard.h"
+#include "upgrade.h"
 
 static constexpr ItemType g_CropHarvestItem[CropType_MAX] = {
 	ItemType_Carrot,    // CropType_Carrot
@@ -78,6 +79,18 @@ void PlayerInteraction_UpdateHarvestTimer(float delta_time)
 	}
 }
 
+static void WaterPlotIfNeeded(int plotIndex)
+{
+	if (plotIndex < 0) return;
+
+	CropPlot* p = CropPlot_Get(plotIndex);
+	if (!p || !p->occupied) return;
+	if (CropGet(p->cropIndex).growthStage == CropGrowth_Ready) return; // nothing left to water
+	if (Crop_GetRank(p->cropIndex) == CropRank_Watered) return;        // already watered
+
+	Crop_Water(p->cropIndex);
+}
+
 void PlayerInteraction_HandleUse(float delta_time)
 {
 	if (Shop_IsPlayerNear())
@@ -132,6 +145,13 @@ void PlayerInteraction_HandleUse(float delta_time)
 			if (InputKeyboard_IsTrigger(KK_E))
 			{
 				Crop_Water(plot->cropIndex);
+
+				if (Upgrade_IsWaterAreaUnlocked())
+				{
+					WaterPlotIfNeeded(CropPlot_GetIndexAt(plot->x + PLOT_SIZE, plot->y));
+					WaterPlotIfNeeded(CropPlot_GetIndexAt(plot->x, plot->y + PLOT_SIZE));
+					WaterPlotIfNeeded(CropPlot_GetIndexAt(plot->x + PLOT_SIZE, plot->y + PLOT_SIZE));
+				}
 			}
 			Player_ChangeState(Watering);
 		}

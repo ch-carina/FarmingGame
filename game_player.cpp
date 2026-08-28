@@ -99,6 +99,11 @@ void Player_ChangeState(PlayerAnimState newState)
 	}
 }
 
+void GamePlayer_AddSpeedBonus(float amount)
+{
+	g_Speed += amount; 
+}
+
 CollisionCircle GamePlayer_GetCollisionCircle()
 {
 	return

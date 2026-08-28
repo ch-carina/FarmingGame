@@ -55,6 +55,10 @@ struct CropPlot
     CollisionBox cropCollision;
 };
 
+constexpr float PLOT_SIZE = 96.0f;
+
+int CropPlot_GetIndexAt(float x, float y); // -1 if no plot sits at this exact pixel position
+
 CropPlot* CropPlot_Get(int index);
 
 int CropPlot_GetCount();

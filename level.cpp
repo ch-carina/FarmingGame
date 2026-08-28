@@ -20,6 +20,7 @@
 #include "texture.h"
 #include "input_keyboard.h"
 #include "config.h"
+#include "upgrade.h"
 #include <cstdio>
 
 static LevelType g_CurrentLevel = Level1;
@@ -127,6 +128,7 @@ const LevelLayout& Level_GetCurrentLayout()
 
 void Level_Initialize()
 {
+    Upgrade_Initialize();
     g_PanelCapLeftID = Texture_Load(L"assets/UI/UI_L.PNG", true);
     g_PanelCapMidID = Texture_Load(L"assets/UI/UI_M.PNG", true);
     g_PanelCapRightID = Texture_Load(L"assets/UI/UI_R.PNG", true);
@@ -137,6 +139,7 @@ void Level_Initialize()
 
 void Level_Finalize()
 {
+    Upgrade_Finalize();
     Texture_Release(g_PanelCapLeftID);
     Texture_Release(g_PanelCapMidID);
     Texture_Release(g_PanelCapRightID);
@@ -157,6 +160,18 @@ void Level_Load(LevelType level)
 
 void Level_Update(float delta_time)
 {
+    if (Upgrade_IsChoiceActive())
+    {
+        Upgrade_Update(delta_time);
+        if (!Upgrade_IsChoiceActive())
+        {
+            // player just confirmed a choice -- finish the advance we deferred
+            Level_Load((LevelType)(g_CurrentLevel + 1));
+            Level_SetCheckpoint();
+        }
+        return;
+    }
+
     if (g_ShowResult)
     {
         if (InputKeyboard_IsTrigger(KK_ENTER))
@@ -169,8 +184,12 @@ void Level_Update(float delta_time)
             }
             else if (g_CurrentLevel + 1 < Level_MAX)
             {
-                Level_Load((LevelType)(g_CurrentLevel + 1)); // advance — money & inventory carry over
-                Level_SetCheckpoint(); // new checkpoint = whatever you carried into this level
+                if (!Upgrade_TryBeginChoice(g_CurrentLevel))
+                {
+                    Level_Load((LevelType)(g_CurrentLevel + 1)); // advance — money & inventory carry over
+                    Level_SetCheckpoint(); // new checkpoint = whatever you carried into this level
+                }
+                // else: the branch above finishes the advance once the player picks
             }
         }
         return;
@@ -214,6 +233,12 @@ void Level_DrawHUD()
 
 void Level_DrawResult()
 {
+    if (Upgrade_IsChoiceActive())
+    {
+        Upgrade_Draw();
+        return;
+    }
+
     if (!g_ShowResult) return;
 
     float panelX = (SCREEN_WIDTH - RESULT_PANEL_WIDTH) * 0.5f;

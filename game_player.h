@@ -46,6 +46,8 @@ void GamePlayer_Draw();
 
 void Player_ChangeState(PlayerAnimState newState);
 
+void GamePlayer_AddSpeedBonus(float amount);
+
 CollisionCircle GamePlayer_GetCollisionCircle(); 
 
 bool GamePlayer_TakeDamage(); // returns true if damage was actually applied
