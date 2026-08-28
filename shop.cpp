@@ -258,12 +258,12 @@ void Shop_DrawMenu()
 		constexpr float NAME_SCALE = 2.75f;
 		float nameX = slotX + ICON_SIZE + 20.0f;
 		DirectX::XMFLOAT2 nameSize = Font_MeasureText(GetItemName(item), NAME_SCALE);
-		float nameY = iconY + (ICON_SIZE - nameSize.y) * 0.5f;
+		float nameY = iconY + (ICON_SIZE - nameSize.y) * 0.5f-3.0f;
 		Font_Print(GetItemName(item), nameX, nameY, NAME_SCALE);
 
 		// bottom row: price bottom-left, quantity bottom-right
 		constexpr float BOTTOM_ROW_SCALE = 2.0f;
-		float bottomRowY = slotY + slotH - Font_MeasureText("0", BOTTOM_ROW_SCALE).y - 8.0f;
+		float bottomRowY = slotY + slotH - Font_MeasureText("0", BOTTOM_ROW_SCALE).y - 13.0f;
 
 		char priceStr[16];
 		snprintf(priceStr, sizeof(priceStr), "%dC", Shop_GetItemPrice(i));
