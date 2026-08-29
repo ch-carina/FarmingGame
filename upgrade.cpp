@@ -45,6 +45,11 @@ static UpgradeType g_CurrentOptions[2] = { UpgradeType_MoveSpeed, UpgradeType_Wa
 
 static bool g_WaterAreaUnlocked = false;
 
+static int g_PanelCapLeftID = TEXTURE_INVALID_ID;
+static int g_PanelCapMidID = TEXTURE_INVALID_ID;
+static int g_PanelCapRightID = TEXTURE_INVALID_ID;
+static float g_PanelCapWidth = 0.0f;
+
 static const char* GetUpgradeName(UpgradeType type)
 {
     switch (type)
@@ -91,6 +96,12 @@ static void ApplyUpgrade(UpgradeType type)
 void Upgrade_Initialize()
 {
     g_SpeedIconTextureID = Texture_Load(L"assets/UI/SpeedBoost.PNG", true);
+
+    g_PanelCapLeftID = Texture_Load(L"assets/UI/UI_L.PNG", true);
+    g_PanelCapMidID = Texture_Load(L"assets/UI/UI_M.PNG", true);
+    g_PanelCapRightID = Texture_Load(L"assets/UI/UI_R.PNG", true);
+    g_PanelCapWidth = (float)Texture_GetWidth(g_PanelCapLeftID);
+
     g_ChoiceActive = false;
     g_SelectedOption = 0;
 }
@@ -98,6 +109,9 @@ void Upgrade_Initialize()
 void Upgrade_Finalize()
 {
     Texture_Release(g_SpeedIconTextureID);
+    Texture_Release(g_PanelCapLeftID);
+    Texture_Release(g_PanelCapMidID);
+    Texture_Release(g_PanelCapRightID);
 }
 
 bool Upgrade_TryBeginChoice(LevelType clearedLevel)
@@ -139,7 +153,18 @@ static constexpr float CARD_WIDTH = 260.0f;
 static constexpr float CARD_HEIGHT = 260.0f;
 static constexpr float CARD_GAP = 60.0f;
 static constexpr float ICON_SIZE = 96.0f;
-static constexpr float SELECT_SCALE = 1.05f; // same enlargement factor shop.cpp uses for its selected slot
+static constexpr float SELECT_SCALE = 1.05f;
+
+static void Draw3Slice(int leftID, int midID, int rightID, float capWidth,
+    float x, float y, float width, float height, const DirectX::XMFLOAT4& tint = { 1.0f, 1.0f, 1.0f, 1.0f })
+{
+    float midWidth = width - capWidth * 2.0f;
+    if (midWidth < 0.0f) midWidth = 0.0f;
+
+    Sprite_Draw(leftID, x, y, capWidth, height, tint);
+    Sprite_Draw(midID, x + capWidth, y, midWidth, height, tint);
+    Sprite_Draw(rightID, x + capWidth + midWidth, y, capWidth, height, tint);
+}
 
 void Upgrade_Draw()
 {
@@ -167,6 +192,9 @@ void Upgrade_Draw()
         float cardH = CARD_HEIGHT * scale;
         float cardX = baseX - (cardW - CARD_WIDTH) * 0.5f;
         float cardY = baseY - (cardH - CARD_HEIGHT) * 0.5f;
+
+        Draw3Slice(g_PanelCapLeftID, g_PanelCapMidID, g_PanelCapRightID, g_PanelCapWidth,
+            cardX, cardY, cardW, cardH);
 
         UpgradeType type = g_CurrentOptions[i];
 

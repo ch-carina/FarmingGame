@@ -70,8 +70,19 @@ void PlayerAnimation_Finalize()
 	}
 }
 
-void PlayerAnimation_Advance(PLAYER& player, float delta_time)
+void PlayerAnimation_Advance(PLAYER& player, float delta_time, bool isMoving)
 {
+	bool isWalkingState = (player.animState == WalkingF || player.animState == WalkingB ||
+		player.animState == WalkingL || player.animState == WalkingR);
+
+	if (isWalkingState && !isMoving)
+	{
+		// standing still while facing a direction -- hold on the walk sheet's first frame
+		player.animFrame = 0;
+		player.animTimer = 0.0f;
+		return;
+	}
+
 	AnimInfo& anim = g_PlayerAnims[player.animState];
 
 	player.animTimer += delta_time;

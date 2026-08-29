@@ -34,6 +34,18 @@ static constexpr float PLAYER_DEFAULT_SPEED{ 400.0f };
 
 static float g_Speed{ PLAYER_DEFAULT_SPEED }; //how many pixels does it move per second 
 
+static int g_ShadowTextureID = TEXTURE_INVALID_ID;
+static constexpr float SHADOW_WIDTH = PLAYER_WIDTH * 1.3f;
+static constexpr float SHADOW_HEIGHT = PLAYER_WIDTH * 0.6f;
+static const DirectX::XMFLOAT4 SHADOW_TINT{ 0.0f, 0.0f, 0.0f, 0.75f };
+
+static XMFLOAT2 g_LastMoveDirection{ 0.0f, 1.0f }; // defaults to facing down, matches initial g_Player.facing
+
+static constexpr float KNOCKBACK_SPEED = 350.0f;
+static constexpr float KNOCKBACK_DURATION = 0.25f;
+static XMFLOAT2 g_KnockbackVelocity{ 0.0f, 0.0f };
+static float g_KnockbackTimer = 0.0f;
+
 static XMFLOAT2 FacingToDirection(PlayerFacing facing)
 {
 	switch (facing)
@@ -44,6 +56,18 @@ static XMFLOAT2 FacingToDirection(PlayerFacing facing)
 	case Right: return { 1.0f, 0.0f };
 	}
 	return { 1.0f, 0.0f };
+}
+
+static PlayerAnimState FacingToWalkState(PlayerFacing facing)
+{
+	switch (facing)
+	{
+	case Up:    return WalkingB;
+	case Down:  return WalkingF;
+	case Left:  return WalkingL;
+	case Right: return WalkingR;
+	}
+	return WalkingF;
 }
 
 static bool isDamaged = false;
@@ -61,12 +85,17 @@ bool GamePlayer_TakeDamage()
 	damageTimer = 0.0f;
 	isInvincible = true;
 	invincibleTimer = 0.0f;
+
+	g_KnockbackVelocity = { -g_LastMoveDirection.x * KNOCKBACK_SPEED, -g_LastMoveDirection.y * KNOCKBACK_SPEED };
+	g_KnockbackTimer = KNOCKBACK_DURATION;
+
 	return true;
 }
 
 void GamePlayer_Initialize(float start_x, float start_y)
 {
 	PlayerAnimation_Initialize();
+	g_ShadowTextureID = Texture_Load(L"assets/MC/Shadow.PNG", true);
 
 	g_Position.x = start_x;
 	g_Position.y = start_y;
@@ -86,6 +115,7 @@ void GamePlayer_Initialize(float start_x, float start_y)
 void GamePlayer_Finalize()
 {
 	PlayerAnimation_Finalize();
+	Texture_Release(g_ShadowTextureID);
 }
 
 //Changing Player Animation State 
@@ -166,6 +196,12 @@ void GamePlayer_Update(float delta_time)
 		g_Player.facing = Right;
 	}
 
+	if (direction.x != 0.0f || direction.y != 0.0f)
+	{
+		XMVECTOR dirVec = XMVector2Normalize(XMLoadFloat2(&direction));
+		XMStoreFloat2(&g_LastMoveDirection, dirVec);
+	}
+
 	//Changing PlayerAnim State according to keys 
 	if (isDamaged)
 	{
@@ -207,16 +243,23 @@ void GamePlayer_Update(float delta_time)
 	}
 	else
 	{
-		Player_ChangeState(Idle);
+		Player_ChangeState(FacingToWalkState(g_Player.facing));
 	}
 
 	//check to make sure Vector is not 0 
 	XMVECTOR velocity = XMLoadFloat2(&direction);
 
+	if (g_KnockbackTimer > 0.0f)
+	{
+		g_KnockbackTimer -= delta_time;
+
+		XMVECTOR knockbackVelocity = XMLoadFloat2(&g_KnockbackVelocity);
+		XMStoreFloat2(&g_Position, XMLoadFloat2(&g_Position) + knockbackVelocity * delta_time);
+	}
 	//Check when the Directional Vectors are not 0
 	//Make the Directional Vector equal to 1
 	//get the lenght of the vector to the power of 2 
-	if (XMVectorGetX(XMVector2LengthSq(velocity)) != 0.0f)
+	else if (XMVectorGetX(XMVector2LengthSq(velocity)) != 0.0f)
 	{
 		//if there is player input 
 		// normalize vector length 1 
@@ -228,7 +271,6 @@ void GamePlayer_Update(float delta_time)
 		//change current coordinates with the vector speed to get new coordinates 
 		XMStoreFloat2(&g_Position, XMLoadFloat2(&g_Position) + velocity);
 	}
-
 
 	// Keep player inside screen
 	if (g_Position.x < 0.0f)
@@ -251,14 +293,21 @@ void GamePlayer_Update(float delta_time)
 		g_Position.y = PLAYER_MOVE_LIMIT_Y;
 	}
 
-	PlayerAnimation_Advance(g_Player, delta_time);
-
 	g_Player.x = g_Position.x;
 	g_Player.y = g_Position.y;
+
+	bool isMoving = (direction.x != 0.0f || direction.y != 0.0f);
+	PlayerAnimation_Advance(g_Player, delta_time, isMoving);
 }
 
 void GamePlayer_Draw()
 {
+	float shadowCenterX = g_Position.x + PLAYER_WIDTH * 0.5f;
+	float shadowCenterY = g_Position.y + PLAYER_HEIGHT - 10.0f;
+	Sprite_Draw(g_ShadowTextureID,
+		shadowCenterX - SHADOW_WIDTH * 0.5f, shadowCenterY - SHADOW_HEIGHT * 0.5f,
+		SHADOW_WIDTH, SHADOW_HEIGHT, SHADOW_TINT);
+
 	PlayerAnimation_Draw(g_Player, g_Position.x, g_Position.y, PLAYER_WIDTH, PLAYER_HEIGHT);
 
 	if (PlayerInteraction_IsHarvesting())

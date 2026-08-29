@@ -19,6 +19,7 @@
 #include "blur.h"
 #include "fade.h"
 #include "damage_flash.h"
+#include "cloud.h"
 
 #ifdef _DEBUG
 #include "collision_debug.h"
@@ -43,6 +44,7 @@ void Game_Initialize()
 	GamePlayer_BulletInitialize();
 	EnemyInitialize();
 	CropInitialize();
+	Cloud_Initialize();
 	Inventory_Initialize();
 	Inventory_AddItem(ItemType_WaterPail, 1); //WaterPail for player to water plants
 	Inventory_AddItem(ItemType_CarrotSeed, 5); // starting seeds for testing
@@ -68,6 +70,7 @@ void Game_Finalize()
 	GamePlayer_Finalize();
 	Ground_Finalize();
 	CropFinalize();
+	Cloud_Finalize();
 	Shop_Finalize();
 	Inventory_Finalize();
 	GamePlayer_BulletFinalize();
@@ -91,6 +94,7 @@ void Game_Update(float delta_time)
 	Level_Update(delta_time);
 	GamePlayer_Update(delta_time);
 	CropUpdate(delta_time);
+	Cloud_Update(delta_time);
 	GamePlayer_BulletUpdate(delta_time);
 	EnemyUpdate(delta_time);
 	Explosion_Update(delta_time);
@@ -126,6 +130,7 @@ static void DrawWorld()
 	GamePlayer_Draw();
 	GamePlayer_BulletDraw();
 	EnemyDraw();
+	Cloud_Draw();
 	GameScore_Draw();
 	Explosion_Draw();
 	Inventory_Draw();

@@ -44,7 +44,7 @@ static int g_AudioID_Shot{};
 
 void GamePlayer_BulletInitialize()
 {
-	g_TextureID_Bullet = Texture_Load(L"assets/tumbleweed.png", true);
+	g_TextureID_Bullet = Texture_Load(L"assets/MC/bullet.png", false);
 	g_AudioID_Shot = LoadAudio("assets/shot.wav");
 	g_BulletFireCount = 0;
 	g_BulletFireTimer = 0.0f;

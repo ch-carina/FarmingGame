@@ -32,4 +32,5 @@ void Texture_SetTexture(int texture_id);
 DirectX::XMUINT2 Texture_GetSize(int texture_id);
 unsigned int Texture_GetWidth(int texture_id);
 unsigned int Texture_GetHeight(int texture_id);
+
 #endif // TEXTURE_H
