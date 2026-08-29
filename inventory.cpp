@@ -15,6 +15,7 @@
 #include "config.h"
 #include "input_keyboard.h"
 #include "font.h"
+#include "Audio.h"
 #include <cstdio>
 
 static inventorySlot g_Slots[INVENTORY_SLOT_COUNT];
@@ -31,6 +32,9 @@ static constexpr float COUNT_MARGIN = 4.0f;
 static constexpr float SLOT_SPACING = 8.0f;
 static constexpr float BOTTOM_MARGIN = 20.0f;
 static constexpr float SLOT_SELECT_SCALE = 1.2f;
+
+static int g_AudioID_InsertItem{ -1 };
+
 
 static int GetMaxStack(ItemType item)
 {
@@ -88,11 +92,15 @@ void Inventory_Initialize()
 	g_ItemIconTextureID[ItemType_Carrot] = Texture_Load(L"assets/Crops/Carrot/Carrot_Crop.PNG", false);
 	g_ItemIconTextureID[ItemType_CarrotGold] = Texture_Load(L"assets/Crops/Carrot/Carrot_Crop.PNG", false);
 	g_ItemIconTextureID[ItemType_Blueberry] = Texture_Load(L"assets/Crops/Blueberry.PNG", false);
+
+	g_AudioID_InsertItem = LoadAudio("assets/SFX/inventory_enter.wav");
 }
 
 void Inventory_Finalize()
 {
 	Texture_Release(g_SlotTextureID);
+
+	UnloadAudio(g_AudioID_InsertItem);
 	
 	for (int i = 0; i < ItemType_MAX; i++)
 	{
@@ -187,7 +195,7 @@ bool Inventory_AddItem(ItemType item, int amount)
 		g_Slots[i].count = add;
 		amount -= add;
 	}
-
+	PlayAudio(g_AudioID_InsertItem);
 	return amount <= 0; //false means inventory was full and some amount didnt fit
 }
 

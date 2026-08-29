@@ -150,10 +150,17 @@ void GamePlayer_BulletUpdate(float delta_time)
 
 void GamePlayer_BulletDraw()
 {
+	int texW = (int)Texture_GetWidth(g_TextureID_Bullet);
+	int texH = (int)Texture_GetHeight(g_TextureID_Bullet);
+
 	for (int i = 0;i < g_BulletFireCount;i++)
 	{
+		float angle = atan2f(g_Bullets[i].direction.y, g_Bullets[i].direction.x);
+
 		Sprite_Draw(g_TextureID_Bullet, g_Bullets[i].x, g_Bullets[i].y,
-			BULLET_WIDTH, BULLET_HEIGHT);
+			BULLET_WIDTH, BULLET_HEIGHT,
+			0, 0, texW, texH,
+			angle);
 	}
 
 #ifdef _DEBUG

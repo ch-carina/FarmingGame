@@ -16,11 +16,15 @@
 #include "fade.h"
 #include "font.h"
 #include "ground.h"
+#include "Audio.h"
 #include <Windows.h>
 
 static int g_TextureID_MenuTitle{ -1 };
 static float g_AccumalatedTime{ 0.0f };
 static bool g_IsChangeScene{};
+
+static int g_AudioID_MenuMove{ -1 };
+static int g_AudioID_MenuSelect{ -1 };
 
 enum MenuState
 {
@@ -107,6 +111,8 @@ void Menu_Initialize()
 	Ground_LoadLayout(nullptr, 0); // no plot regions in the menu, so every tile gets a random ground tile
 
 	Font_Initialize();
+	g_AudioID_MenuMove = LoadAudio("assets/SFX/menu_movement.wav");
+	g_AudioID_MenuSelect = LoadAudio("assets/SFX/menu_select.wav");
 	g_AccumalatedTime = 0.0f;
 	g_IsChangeScene = false;
 	g_MenuState = kMenuMain;
@@ -120,6 +126,8 @@ void Menu_Finalize()
 	Texture_Release(g_SlotCapMidID);
 	Texture_Release(g_SlotCapRightID);
 	Font_Finalize();
+	UnloadAudio(g_AudioID_MenuMove);
+	UnloadAudio(g_AudioID_MenuSelect);
 	Ground_Finalize();
 }
 
@@ -149,14 +157,17 @@ void Menu_Update(float delta_time)
 	if (InputKeyboard_IsTrigger(KK_S))
 	{
 		g_SelectedButton = (g_SelectedButton + 1) % kButtonCount;
+		PlayAudio(g_AudioID_MenuMove);
 	}
 	if (InputKeyboard_IsTrigger(KK_W))
 	{
 		g_SelectedButton = (g_SelectedButton - 1 + kButtonCount) % kButtonCount;
+		PlayAudio(g_AudioID_MenuMove);
 	}
 
 	if (InputKeyboard_IsTrigger(KK_ENTER))
 	{
+		PlayAudio(g_AudioID_MenuSelect);
 		ActivateButton(g_SelectedButton);
 	}
 }
