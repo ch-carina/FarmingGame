@@ -24,6 +24,7 @@
 #include "collision.h"
 #include "game.h"
 #include "explosion.h"
+#include "water.h"
 
 static constexpr int ENEMY_MAX{ 128 };
 static Enemy g_Enemies[ENEMY_MAX]{ };
@@ -215,6 +216,35 @@ EnemyType Enemy_GetTypeForCrop(CropType cropType) //This is to assign enemy to c
 	return EnemyType_Rabbit; // Default case
 }
 
+static DirectX::XMFLOAT2 SteerAroundWater(float x, float y, float dirX, float dirY, float probeDistance, float probeRadius)
+{
+	CollisionCircle probe{ { x + dirX * probeDistance, y + dirY * probeDistance }, probeRadius };
+	if (!Water_IsBlocked(probe))
+	{
+		return { dirX, dirY }; // straight path is clear
+	}
+
+	float perpX = -dirY, perpY = dirX; // 90 degrees left of the direct heading
+
+	float sides[2] = { 1.0f, -1.0f }; // try right, then left
+	for (int i = 0; i < 2; i++)
+	{
+		float side = sides[i];
+		float steerX = dirX * 0.4f + perpX * side * 0.9f;
+		float steerY = dirY * 0.4f + perpY * side * 0.9f;
+		float len = sqrtf(steerX * steerX + steerY * steerY);
+		if (len > 0.0001f) { steerX /= len; steerY /= len; }
+
+		CollisionCircle steerProbe{ { x + steerX * probeDistance, y + steerY * probeDistance }, probeRadius };
+		if (!Water_IsBlocked(steerProbe))
+		{
+			return { steerX, steerY };
+		}
+	}
+
+	return { 0.0f, 0.0f }; // boxed in on both sides -- hold position this frame rather than push into it
+}
+
 void EnemyUpdate(float delta_time)
 {
 	Enemy_CheckCropSpawns(delta_time);
@@ -227,8 +257,18 @@ void EnemyUpdate(float delta_time)
 		{
 		case EnemyState_Spawn: // approach
 		{
-			e.x += e.dirX * e.speed * delta_time;
-			e.y += e.dirY * e.speed * delta_time;
+			float toTargetX = e.targetX - e.x;
+			float toTargetY = e.targetY - e.y;
+			float toTargetLen = sqrtf(toTargetX * toTargetX + toTargetY * toTargetY);
+			float aimX = (toTargetLen > 0.0001f) ? toTargetX / toTargetLen : e.dirX;
+			float aimY = (toTargetLen > 0.0001f) ? toTargetY / toTargetLen : e.dirY;
+
+			constexpr float PROBE_DISTANCE = 40.0f;
+			constexpr float PROBE_RADIUS = 24.0f;
+			DirectX::XMFLOAT2 moveDir = SteerAroundWater(e.x, e.y, aimX, aimY, PROBE_DISTANCE, PROBE_RADIUS);
+
+			e.x += moveDir.x * e.speed * delta_time;
+			e.y += moveDir.y * e.speed * delta_time;
 
 			float dx = e.targetX - e.x;
 			float dy = e.targetY - e.y;
