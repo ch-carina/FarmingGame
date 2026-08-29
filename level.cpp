@@ -21,6 +21,8 @@
 #include "input_keyboard.h"
 #include "config.h"
 #include "upgrade.h"
+#include "water.h"
+#include "Audio.h"
 #include <cstdio>
 
 static LevelType g_CurrentLevel = Level1;
@@ -40,6 +42,14 @@ static constexpr float RESULT_PANEL_HEIGHT = 220.0f;
 static int g_CheckpointMoney = 0;
 static InventorySnapshot g_CheckpointInventory;
 
+static bool g_ShowCountdown = false;
+static float g_CountdownTimer = 0.0f;
+static constexpr float COUNTDOWN_DURATION = 4.0f; // 1 second each for "3", "2", "1", "GO!"
+static constexpr float COUNTDOWN_PANEL_WIDTH = 420.0f;
+static constexpr float COUNTDOWN_PANEL_HEIGHT = 260.0f;
+static int g_AudioID_LevelStart = -1;
+static bool g_GoSoundPlayed = false;
+
 //---------------- 
 //Level 1 plots  
 //----------------
@@ -48,6 +58,12 @@ static constexpr PlotRegion g_Level1Regions[] =
     { 2, 1, 2, 2 },   // 2x2 plot (4 slots), top-left tile at (2,1)
     { 6, 2, 3, 3 },
     { 10, 4, 2, 2 },
+};
+
+static constexpr PlotRegion g_Level1WaterRegions[] =
+{
+    { 3, 3, 2, 2 },
+    {10,1,3,2}, 
 };
 
 static constexpr ShopItem g_Level1ShopItems[] =
@@ -66,6 +82,11 @@ static constexpr PlotRegion g_Level2Regions[] =
     { 4, 2, 3, 3 },
     { 8, 1, 2, 2 },   // second 2x2 plot
     { 11, 4, 2, 2 },
+};
+
+static constexpr PlotRegion g_Level2WaterRegions[] =
+{
+    { 11, 0, 2, 3 },
 };
 
 static constexpr ShopItem g_Level2ShopItems[] =
@@ -88,6 +109,11 @@ static constexpr PlotRegion g_Level3Regions[] =
     { 1, 4, 3, 3 },
 };
 
+static constexpr PlotRegion g_Level3WaterRegions[] =
+{
+    { 9, 4, 3, 3 },
+};
+
 static constexpr ShopItem g_Level3ShopItems[] =
 {
     { ItemType_CarrotSeed, 10 },
@@ -104,11 +130,12 @@ static constexpr ShopItem g_Level3ShopItems[] =
 //Shop items available
 //how many are unlocked 
 //quota for the level 
+//Water plots 
 static constexpr LevelLayout g_Levels[Level_MAX] =
 {
-    { g_Level1Regions, 3 , 90.0f,  g_Level1ShopItems, 2, 200 },
-    { g_Level2Regions, 4 , 120.0f,  g_Level2ShopItems, 4, 400 },
-    { g_Level3Regions, 5 , 180.0f, g_Level3ShopItems, 5, 600 },
+    { g_Level1Regions, 3 , 90.0f,  g_Level1ShopItems, 2, 200, g_Level1WaterRegions, 2 },
+    { g_Level2Regions, 4 , 120.0f,  g_Level2ShopItems, 4, 400, g_Level2WaterRegions, 1 },
+    { g_Level3Regions, 5 , 180.0f, g_Level3ShopItems, 5, 600, g_Level3WaterRegions, 1 },
 };
 
 static void Draw3Slice(int leftID, int midID, int rightID, float capWidth, float x, float y, float width, float height)
@@ -132,6 +159,7 @@ void Level_Initialize()
     g_PanelCapLeftID = Texture_Load(L"assets/UI/UI_L.PNG", true);
     g_PanelCapMidID = Texture_Load(L"assets/UI/UI_M.PNG", true);
     g_PanelCapRightID = Texture_Load(L"assets/UI/UI_R.PNG", true);
+    g_AudioID_LevelStart = LoadAudio("assets/SFX/level_start.wav");
     g_PanelCapWidth = (float)Texture_GetWidth(g_PanelCapLeftID);
 
     Level_Load(Level1);
@@ -140,6 +168,7 @@ void Level_Initialize()
 void Level_Finalize()
 {
     Upgrade_Finalize();
+    UnloadAudio(g_AudioID_LevelStart);
     Texture_Release(g_PanelCapLeftID);
     Texture_Release(g_PanelCapMidID);
     Texture_Release(g_PanelCapRightID);
@@ -152,14 +181,36 @@ void Level_Load(LevelType level)
     const LevelLayout& layout = g_Levels[level];
     CropPlot_LoadRegions(layout.regions, layout.regionCount);
     Ground_LoadLayout(layout.regions, layout.regionCount);
+    Water_LoadRegions(layout.waterRegions, layout.waterRegionCount);
     g_TimeRemaining = layout.timeLimit;
 
     g_Result = LevelResult_None;
     g_ShowResult = false;
+
+    g_ShowCountdown = true;
+    g_CountdownTimer = COUNTDOWN_DURATION;
+    g_GoSoundPlayed = false;
 }
 
 void Level_Update(float delta_time)
 {
+    if (g_ShowCountdown)
+    {
+        g_CountdownTimer -= delta_time;
+
+        if (!g_GoSoundPlayed && g_CountdownTimer <= COUNTDOWN_DURATION / 4.0f)
+        {
+            PlayAudio(g_AudioID_LevelStart);
+            g_GoSoundPlayed = true;
+        }
+
+        if (g_CountdownTimer <= 0.0f)
+        {
+            g_ShowCountdown = false;
+        }
+        return;
+    }
+
     if (Upgrade_IsChoiceActive())
     {
         Upgrade_Update(delta_time);
@@ -231,8 +282,59 @@ void Level_DrawHUD()
     Font_Print(goalStr, (SCREEN_WIDTH - goalSize.x) * 0.5f, 20.0f + timeSize.y + 4.0f, GOAL_SCALE);
 }
 
+static void DrawCountdownPanel()
+{
+    float panelX = (SCREEN_WIDTH - COUNTDOWN_PANEL_WIDTH) * 0.5f;
+    float panelY = (SCREEN_HEIGHT - COUNTDOWN_PANEL_HEIGHT) * 0.5f;
+
+    Draw3Slice(g_PanelCapLeftID, g_PanelCapMidID, g_PanelCapRightID, g_PanelCapWidth,
+        panelX, panelY, COUNTDOWN_PANEL_WIDTH, COUNTDOWN_PANEL_HEIGHT);
+
+    const LevelLayout& layout = g_Levels[g_CurrentLevel];
+
+    char titleStr[16];
+    snprintf(titleStr, sizeof(titleStr), "LEVEL %d", g_CurrentLevel + 1);
+
+    char goalStr[32];
+    snprintf(goalStr, sizeof(goalStr), "GOAL: %d", layout.moneyQuota);
+
+    int totalSeconds = (int)(layout.timeLimit + 0.5f);
+    char timeStr[32];
+    snprintf(timeStr, sizeof(timeStr), "TIME LIMIT: %02d:%02d", totalSeconds / 60, totalSeconds % 60);
+
+    float elapsed = COUNTDOWN_DURATION - g_CountdownTimer;
+    int phase = (int)(elapsed / (COUNTDOWN_DURATION / 4.0f));
+    if (phase < 0) phase = 0;
+    if (phase > 3) phase = 3;
+    const char* countdownLabels[4] = { "3", "2", "1", "GO!" };
+    const char* countdownStr = countdownLabels[phase];
+
+    constexpr float TITLE_SCALE = 3.0f;
+    constexpr float INFO_SCALE = 2.2f;
+    constexpr float COUNTDOWN_SCALE = 5.0f;
+
+    DirectX::XMFLOAT2 titleSize = Font_MeasureText(titleStr, TITLE_SCALE);
+    Font_Print(titleStr, panelX + (COUNTDOWN_PANEL_WIDTH - titleSize.x) * 0.5f, panelY + 30.0f, TITLE_SCALE);
+
+    DirectX::XMFLOAT2 goalSize = Font_MeasureText(goalStr, INFO_SCALE);
+    Font_Print(goalStr, panelX + (COUNTDOWN_PANEL_WIDTH - goalSize.x) * 0.5f, panelY + 80.0f, INFO_SCALE);
+
+    DirectX::XMFLOAT2 timeSize = Font_MeasureText(timeStr, INFO_SCALE);
+    Font_Print(timeStr, panelX + (COUNTDOWN_PANEL_WIDTH - timeSize.x) * 0.5f, panelY + 80.0f + goalSize.y + 8.0f, INFO_SCALE);
+
+    DirectX::XMFLOAT2 countdownSize = Font_MeasureText(countdownStr, COUNTDOWN_SCALE);
+    Font_Print(countdownStr, panelX + (COUNTDOWN_PANEL_WIDTH - countdownSize.x) * 0.5f,
+        panelY + COUNTDOWN_PANEL_HEIGHT - countdownSize.y - 50.0f, COUNTDOWN_SCALE);
+}
+
 void Level_DrawResult()
 {
+    if (g_ShowCountdown)
+    {
+        DrawCountdownPanel();
+        return;
+    }
+
     if (Upgrade_IsChoiceActive())
     {
         Upgrade_Draw();
@@ -270,7 +372,7 @@ LevelType Level_GetCurrent()
 
 bool Level_IsShowingResult()
 {
-    return g_ShowResult;
+    return g_ShowResult || g_ShowCountdown;
 }
 
 float Level_GetTimeRemaining()

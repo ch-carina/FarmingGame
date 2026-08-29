@@ -20,6 +20,7 @@
 #include "fade.h"
 #include "damage_flash.h"
 #include "cloud.h"
+#include "water.h"
 
 #ifdef _DEBUG
 #include "collision_debug.h"
@@ -39,6 +40,7 @@ void Game_Initialize()
 	Ground_Initialize();
 	CropPlot_Initialize();
 	Shop_Initialize();
+	Water_Initialize();
 	Level_Initialize();
 	GamePlayer_Initialize(player_start_x,player_start_y);
 	GamePlayer_BulletInitialize();
@@ -70,6 +72,7 @@ void Game_Finalize()
 	GamePlayer_Finalize();
 	Ground_Finalize();
 	CropFinalize();
+	Water_Finalize();
 	Cloud_Finalize();
 	Shop_Finalize();
 	Inventory_Finalize();
@@ -94,6 +97,7 @@ void Game_Update(float delta_time)
 	Level_Update(delta_time);
 	GamePlayer_Update(delta_time);
 	CropUpdate(delta_time);
+	Water_Update(delta_time);
 	Cloud_Update(delta_time);
 	GamePlayer_BulletUpdate(delta_time);
 	EnemyUpdate(delta_time);
@@ -124,6 +128,7 @@ void Game_Update(float delta_time)
 static void DrawWorld()
 {
 	Ground_Draw();
+	Water_Draw();
 	CropPlot_Draw();
 	CropDraw();
 	Shop_Draw();

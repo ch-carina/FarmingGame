@@ -33,4 +33,6 @@ DirectX::XMUINT2 Texture_GetSize(int texture_id);
 unsigned int Texture_GetWidth(int texture_id);
 unsigned int Texture_GetHeight(int texture_id);
 
+ID3D11ShaderResourceView* Texture_GetSRV(int texture_id);
+
 #endif // TEXTURE_H

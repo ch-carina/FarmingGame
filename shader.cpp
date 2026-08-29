@@ -27,6 +27,9 @@ static ID3D11Buffer* g_pBlurConstantBuffer = nullptr;
 static ID3D11Device* g_pDevice = nullptr;
 static ID3D11DeviceContext* g_pContext = nullptr;
 
+static ID3D11PixelShader* g_pWaterPixelShader = nullptr;
+static ID3D11Buffer* g_pWaterConstantBuffer = nullptr;
+
 
 bool Shader_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 {
@@ -126,6 +129,7 @@ bool Shader_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 	}
 
 	Shader_LoadBlurPixelShader();
+	Shader_LoadWaterPixelShader();
 
 	return true;
 }
@@ -138,6 +142,8 @@ void Shader_Finalize()
 	SAFE_RELEASE(g_pVSConstantBuffer);
 	SAFE_RELEASE(g_pInputLayout);
 	SAFE_RELEASE(g_pVertexShader);
+	SAFE_RELEASE(g_pWaterConstantBuffer);
+	SAFE_RELEASE(g_pWaterPixelShader);
 }
 
 void Shader_SetMatrix(const DirectX::XMMATRIX& matrix)
@@ -203,4 +209,44 @@ void Shader_SetBlurParams(const DirectX::XMFLOAT2& texelSize, const DirectX::XMF
 	XMFLOAT4 params{ texelSize.x, texelSize.y, direction.x, direction.y };
 	g_pContext->UpdateSubresource(g_pBlurConstantBuffer, 0, nullptr, &params, 0, 0);
 	g_pContext->PSSetConstantBuffers(0, 1, &g_pBlurConstantBuffer);
+}
+
+void Shader_LoadWaterPixelShader()
+{
+	std::ifstream ifs_ps("shader_pixel_water.cso", std::ios::binary);
+	if (!ifs_ps) {
+		MessageBox(nullptr, "ピクセルシェーダーの読み込みに失敗しました\n\nshader_pixel_water.cso", "エラー", MB_OK);
+		return;
+	}
+
+	ifs_ps.seekg(0, std::ios::end);
+	std::streamsize filesize = ifs_ps.tellg();
+	ifs_ps.seekg(0, std::ios::beg);
+
+	unsigned char* psbinary_pointer = new unsigned char[filesize];
+	ifs_ps.read((char*)psbinary_pointer, filesize);
+	ifs_ps.close();
+
+	g_pDevice->CreatePixelShader(psbinary_pointer, filesize, nullptr, &g_pWaterPixelShader);
+	delete[] psbinary_pointer;
+
+	D3D11_BUFFER_DESC buffer_desc{};
+	buffer_desc.ByteWidth = sizeof(XMFLOAT4) * 2;
+	buffer_desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	g_pDevice->CreateBuffer(&buffer_desc, nullptr, &g_pWaterConstantBuffer);
+}
+
+void Shader_BeginWater()
+{
+	g_pContext->VSSetShader(g_pVertexShader, nullptr, 0);
+	g_pContext->PSSetShader(g_pWaterPixelShader, nullptr, 0);
+	g_pContext->IASetInputLayout(g_pInputLayout);
+	g_pContext->VSSetConstantBuffers(0, 1, &g_pVSConstantBuffer);
+}
+
+void Shader_SetWaterParams(float time, const DirectX::XMFLOAT2& worldOffset)
+{
+	struct WaterParams { float time; float pad1[3]; XMFLOAT2 worldOffset; float pad2[2]; } params{ time, { 0,0,0 }, worldOffset, { 0,0 } };
+	g_pContext->UpdateSubresource(g_pWaterConstantBuffer, 0, nullptr, &params, 0, 0);
+	g_pContext->PSSetConstantBuffers(0, 1, &g_pWaterConstantBuffer);
 }

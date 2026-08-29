@@ -160,6 +160,13 @@ unsigned int Texture_GetHeight(int texture_id)
 
 }
 
+ID3D11ShaderResourceView* Texture_GetSRV(int texture_id)
+{
+	if (texture_id < 0 || texture_id >= TEXTURE_MAX) {
+		return nullptr;
+	}
+	return g_Textures[texture_id].pTextureView;
+}
 
 
 

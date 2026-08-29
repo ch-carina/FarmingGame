@@ -38,6 +38,8 @@ struct LevelLayout
     const ShopItem* shopItems;
     int shopItemCount;
     int moneyQuota;
+    const PlotRegion* waterRegions;
+    int waterRegionCount;
 };
 
 enum LevelResult

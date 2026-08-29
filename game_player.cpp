@@ -17,6 +17,7 @@
 #include "sellBox.h"
 #include "explosion.h"
 #include "level.h"
+#include "water.h"
 
 #include <DirectXMath.h>
 using namespace DirectX;
@@ -256,20 +257,30 @@ void GamePlayer_Update(float delta_time)
 		XMVECTOR knockbackVelocity = XMLoadFloat2(&g_KnockbackVelocity);
 		XMStoreFloat2(&g_Position, XMLoadFloat2(&g_Position) + knockbackVelocity * delta_time);
 	}
-	//Check when the Directional Vectors are not 0
-	//Make the Directional Vector equal to 1
-	//get the lenght of the vector to the power of 2 
 	else if (XMVectorGetX(XMVector2LengthSq(velocity)) != 0.0f)
 	{
-		//if there is player input 
-		// normalize vector length 1 
 		velocity = XMVector2Normalize(velocity);
-		//x/length,y/length -> length is 0 and will become an error 
-
 		velocity *= g_Speed * delta_time;
 
-		//change current coordinates with the vector speed to get new coordinates 
-		XMStoreFloat2(&g_Position, XMLoadFloat2(&g_Position) + velocity);
+		XMFLOAT2 moveDelta;
+		XMStoreFloat2(&moveDelta, velocity);
+
+		constexpr float feetRadius = PLAYER_WIDTH * 0.5f;
+		float feetOffsetY = PLAYER_HEIGHT - PLAYER_WIDTH * 0.5f;
+
+		float candidateX = g_Position.x + moveDelta.x;
+		CollisionCircle feetAtX{ { candidateX + feetRadius, g_Position.y + feetOffsetY }, feetRadius };
+		if (!Water_IsBlocked(feetAtX))
+		{
+			g_Position.x = candidateX;
+		}
+
+		float candidateY = g_Position.y + moveDelta.y;
+		CollisionCircle feetAtY{ { g_Position.x + feetRadius, candidateY + feetOffsetY }, feetRadius };
+		if (!Water_IsBlocked(feetAtY))
+		{
+			g_Position.y = candidateY;
+		}
 	}
 
 	// Keep player inside screen
