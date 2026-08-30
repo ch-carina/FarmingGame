@@ -14,6 +14,7 @@
 #include "direct3d.h"
 #include "collision.h"
 #include "collision_debug.h"
+#include "draw_queue.h"
 
 using namespace DirectX; 
 
@@ -157,10 +158,10 @@ void GamePlayer_BulletDraw()
 	{
 		float angle = atan2f(g_Bullets[i].direction.y, g_Bullets[i].direction.x);
 
-		Sprite_Draw(g_TextureID_Bullet, g_Bullets[i].x, g_Bullets[i].y,
+		DrawQueue_Push(g_TextureID_Bullet, g_Bullets[i].x, g_Bullets[i].y,
 			BULLET_WIDTH, BULLET_HEIGHT,
 			0, 0, texW, texH,
-			angle);
+			g_Bullets[i].y + BULLET_HEIGHT, angle);
 	}
 
 #ifdef _DEBUG
@@ -170,4 +171,3 @@ void GamePlayer_BulletDraw()
 	}
 #endif // _DEBUG
 }
-

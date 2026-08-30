@@ -179,6 +179,7 @@ xcopy "$(ProjectDir)assets" "$(OutDir)assets" /E /I /Y</Command>
     <ClCompile Include="damage_flash.cpp" />
     <ClCompile Include="debug_text.cpp" />
     <ClCompile Include="direct3d.cpp" />
+    <ClCompile Include="draw_queue.cpp" />
     <ClCompile Include="enemy.cpp" />
     <ClCompile Include="enemy_animation.cpp" />
     <ClCompile Include="explosion.cpp" />
@@ -192,6 +193,7 @@ xcopy "$(ProjectDir)assets" "$(OutDir)assets" /E /I /Y</Command>
     <ClCompile Include="game_player_interaction.cpp" />
     <ClCompile Include="game_score.cpp" />
     <ClCompile Include="ground.cpp" />
+    <ClCompile Include="hue_change.cpp" />
     <ClCompile Include="input_keyboard.cpp" />
     <ClCompile Include="inventory.cpp" />
     <ClCompile Include="keyboard.cpp" />
@@ -204,6 +206,7 @@ xcopy "$(ProjectDir)assets" "$(OutDir)assets" /E /I /Y</Command>
     <ClCompile Include="sellBox.cpp" />
     <ClCompile Include="shader.cpp" />
     <ClCompile Include="shop.cpp" />
+    <ClCompile Include="spotlight.cpp" />
     <ClCompile Include="sprite.cpp" />
     <ClCompile Include="system_timer.cpp" />
     <ClCompile Include="texture.cpp" />
@@ -227,6 +230,7 @@ xcopy "$(ProjectDir)assets" "$(OutDir)assets" /E /I /Y</Command>
     <ClInclude Include="debug_ostream.h" />
     <ClInclude Include="debug_text.h" />
     <ClInclude Include="direct3d.h" />
+    <ClInclude Include="draw_queue.h" />
     <ClInclude Include="enemy.h" />
     <ClInclude Include="enemy_animation.h" />
     <ClInclude Include="explosion.h" />
@@ -240,6 +244,7 @@ xcopy "$(ProjectDir)assets" "$(OutDir)assets" /E /I /Y</Command>
     <ClInclude Include="game_player_interaction.h" />
     <ClInclude Include="game_score.h" />
     <ClInclude Include="ground.h" />
+    <ClInclude Include="hue_change.h" />
     <ClInclude Include="input_keyboard.h" />
     <ClInclude Include="inventory.h" />
     <ClInclude Include="keyboard.h" />
@@ -251,6 +256,7 @@ xcopy "$(ProjectDir)assets" "$(OutDir)assets" /E /I /Y</Command>
     <ClInclude Include="sellBox.h" />
     <ClInclude Include="shader.h" />
     <ClInclude Include="shop.h" />
+    <ClInclude Include="spotlight.h" />
     <ClInclude Include="sprite.h" />
     <ClInclude Include="system_timer.h" />
     <ClInclude Include="texture.h" />
@@ -268,6 +274,12 @@ xcopy "$(ProjectDir)assets" "$(OutDir)assets" /E /I /Y</Command>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
     </FxCompile>
     <FxCompile Include="shader_pixel_blur.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="shader_pixel_spotlight.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>

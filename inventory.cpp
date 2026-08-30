@@ -92,6 +92,7 @@ void Inventory_Initialize()
 	g_ItemIconTextureID[ItemType_Carrot] = Texture_Load(L"assets/Crops/Carrot/Carrot_Crop.PNG", false);
 	g_ItemIconTextureID[ItemType_CarrotGold] = Texture_Load(L"assets/Crops/Carrot/Carrot_Crop.PNG", false);
 	g_ItemIconTextureID[ItemType_Blueberry] = Texture_Load(L"assets/Crops/Blueberry.PNG", false);
+	g_ItemIconTextureID[ItemType_Scarecrow] = Texture_Load(L"assets/Crops/Scarecrow.PNG", false);
 
 	g_AudioID_InsertItem = LoadAudio("assets/SFX/inventory_enter.wav");
 }

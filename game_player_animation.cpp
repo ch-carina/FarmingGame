@@ -1,6 +1,7 @@
 #include "game_player_animation.h"
 #include "texture.h"
 #include "sprite.h"
+#include "draw_queue.h"
 
 enum PlayerAnimID
 {
@@ -111,6 +112,7 @@ void PlayerAnimation_Draw(const PLAYER& player, float posX, float posY, float wi
 	float srcX = column * anim.playerWidth;
 	float srcY = row * anim.playerHeight;
 
-	Sprite_Draw(g_AnimID[anim.animID], posX, posY, width, height,
-		srcX, srcY, anim.playerWidth, anim.playerHeight, 0.0f);
+	DrawQueue_Push(g_AnimID[anim.animID], posX, posY, width, height,
+		(int)srcX, (int)srcY, (int)anim.playerWidth, (int)anim.playerHeight,
+		posY + height);
 }

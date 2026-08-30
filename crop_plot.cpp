@@ -18,6 +18,7 @@
 #include"game_player.h"
 #include "config.h"
 #include <algorithm>
+#include <cmath>
 
 using namespace std;
 
@@ -26,6 +27,9 @@ static constexpr int MAX_PLOTS = 64;   // generous ceiling across all levels; ra
 static CropPlot g_CropPlots[MAX_PLOTS];
 static int g_PlotCount = 0;
 static int g_PlotTextures[PlotType_MAX];
+
+static int g_ScarecrowTextureID = TEXTURE_INVALID_ID;
+static constexpr float SCARECROW_DURATION = 10.0f;
 
 const wchar_t* dirtFiles[PlotType_MAX] =
 {
@@ -65,12 +69,25 @@ void CropPlot_Initialize()
         g_PlotTextures[i] = Texture_Load(dirtFiles[i], true);
     }
 
+    g_ScarecrowTextureID = Texture_Load(L"assets/Crops/Scarecrow.PNG", false);
+
     g_PlotCount = 0;
 
 }
 
-void CropPlot_Update()
+void CropPlot_Update(float delta_time)
 {
+    for (int i = 0; i < g_PlotCount; i++)
+    {
+        if (!g_CropPlots[i].hasScarecrow) continue;
+
+        g_CropPlots[i].scarecrowTimer -= delta_time;
+        if (g_CropPlots[i].scarecrowTimer <= 0.0f)
+        {
+            g_CropPlots[i].hasScarecrow = false;
+            g_CropPlots[i].occupied = false;
+        }
+    }
 }
 
 void CropPlot_Draw()
@@ -83,6 +100,14 @@ void CropPlot_Draw()
         Sprite_Draw(
             textureID, g_CropPlots[i].x, g_CropPlots[i].y, 96, 96, 0, 0, 96, 96, 0.0f
         );
+
+        if (g_CropPlots[i].hasScarecrow)
+        {
+            constexpr float SCARECROW_OFFSET = (PLOT_SIZE - CROP_DISPLAY_SIZE) * 0.5f;
+            Sprite_Draw(g_ScarecrowTextureID,
+                g_CropPlots[i].x + SCARECROW_OFFSET, g_CropPlots[i].y + SCARECROW_OFFSET,
+                CROP_DISPLAY_SIZE, CROP_DISPLAY_SIZE, 0, 0, 96, 96, 0.0f);
+        }
     }
 }
 
@@ -113,6 +138,8 @@ void CropPlot_LoadRegions(const PlotRegion regions[], int regionCount)
                 plot.occupied = false;
                 plot.spawnCooldownTimer = 0.0f;
                 plot.hasActiveEnemy = false;
+                plot.hasScarecrow = false;
+                plot.scarecrowTimer = 0.0f;
 
                 // same border classification as before, now using THIS region's own width/height
                 if (row == 0 && col == 0)                                  plot.plotType = PlotType_DirtTL;
@@ -216,4 +243,37 @@ int CropPlot_GetIndexAt(float x, float y)
 CollisionBox CropPlot_GetCollision(int index)
 {
     return g_CropPlots[index].cropCollision;
+}
+
+void CropPlot_PlaceScarecrow(int index)
+{
+    if (index < 0 || index >= g_PlotCount) return;
+    if (g_CropPlots[index].occupied) return;
+
+    g_CropPlots[index].occupied = true;
+    g_CropPlots[index].hasScarecrow = true;
+    g_CropPlots[index].scarecrowTimer = SCARECROW_DURATION;
+}
+
+bool CropPlot_IsAdjacentToScarecrow(int index)
+{
+    if (index < 0 || index >= g_PlotCount) return false;
+
+    float px = g_CropPlots[index].x;
+    float py = g_CropPlots[index].y;
+
+    for (int i = 0; i < g_PlotCount; i++)
+    {
+        if (i == index || !g_CropPlots[i].hasScarecrow) continue;
+
+        float dx = g_CropPlots[i].x - px;
+        float dy = g_CropPlots[i].y - py;
+
+        bool cardinalNeighbor =
+            (fabsf(dx) < 1.0f && fabsf(fabsf(dy) - PLOT_SIZE) < 1.0f) ||
+            (fabsf(dy) < 1.0f && fabsf(fabsf(dx) - PLOT_SIZE) < 1.0f);
+
+        if (cardinalNeighbor) return true;
+    }
+    return false;
 }

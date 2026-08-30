@@ -20,6 +20,7 @@
 #include "font.h"
 #include "input_keyboard.h"
 #include "config.h"
+#include "draw_queue.h"
 #include <cstdio>
 
 static int g_shopInGameTextureID = TEXTURE_INVALID_ID;
@@ -30,7 +31,7 @@ static constexpr float SHOP_MARGIN = 20.0f;
 static CollisionBox g_ShopCollision;
 
 // ---- shop menu ----
-static constexpr int SHOP_ROW_COUNT = 3;
+static constexpr int SHOP_ROW_COUNT = 4;
 static constexpr int SHOP_COLUMN_COUNT = 2;
 static constexpr int SHOP_SLOT_COUNT = SHOP_ROW_COUNT * SHOP_COLUMN_COUNT;
 
@@ -41,6 +42,8 @@ static constexpr ItemType g_ShopSlotItems[SHOP_SLOT_COUNT] =
 	ItemType_LettuceSeed,
 	ItemType_CornSeed,
 	ItemType_BlueberrySeed,
+	ItemType_Scarecrow,
+	ItemType_None,
 	ItemType_None, // reserved for a future item
 };
 
@@ -61,8 +64,8 @@ static float g_SlotCapWidth = 0.0f;
 
 static int g_CoinTextureID = TEXTURE_INVALID_ID;
 
-static constexpr float MENU_WIDTH = 700.0f;
-static constexpr float MENU_HEIGHT = 500.0f;
+static constexpr float MENU_WIDTH = 800.0f;
+static constexpr float MENU_HEIGHT = 600.0f;
 static constexpr float SLOT_WIDTH = 300.0f;
 static constexpr float SLOT_HEIGHT = 80.0f;
 static constexpr float SLOT_SPACING_X = 40.0f;
@@ -70,6 +73,10 @@ static constexpr float SLOT_SPACING_Y = 20.0f;
 static constexpr float GRID_TOP_OFFSET = 100.0f;
 static constexpr float ICON_SIZE = 48.0f;
 static constexpr float SELECT_SCALE = 1.05f;
+
+static constexpr float SHOP_BLOCK_HEIGHT_RATIO = 0.55f; // only the back/roof blocks movement -- the front counter stays walkable
+
+static CollisionBox g_ShopBlockingBox;
 
 static const char* GetItemName(ItemType item)
 {
@@ -80,6 +87,7 @@ static const char* GetItemName(ItemType item)
 	case ItemType_LettuceSeed:   return "Lettuce Seeds";
 	case ItemType_CornSeed:      return "Corn Seeds";
 	case ItemType_BlueberrySeed: return "Blueberry Seeds";
+	case ItemType_Scarecrow:    return "Scarecrow";
 	default:                     return "???";
 	}
 }
@@ -143,6 +151,14 @@ void Shop_Initialize()
 		SCREEN_HEIGHT - SHOP_HEIGHT - SHOP_MARGIN
 	};
 
+	g_ShopBlockingBox =
+	{
+		SHOP_WIDTH,
+		SHOP_HEIGHT * SHOP_BLOCK_HEIGHT_RATIO,
+		g_ShopCollision.x,
+		g_ShopCollision.y
+	};
+
 	g_ShopOpen = false;
 	g_SelectedSlot = 0;
 	for (int i = 0; i < SHOP_SLOT_COUNT; i++)
@@ -200,8 +216,9 @@ void Shop_Update(float delta_time)
 
 void Shop_Draw()
 {
-	Sprite_Draw(g_shopInGameTextureID, g_ShopCollision.x, g_ShopCollision.y,
-		g_ShopCollision.width, g_ShopCollision.height, 0, 0, 96.0f, 96.0f, 0.0f);
+	DrawQueue_Push(g_shopInGameTextureID, g_ShopCollision.x, g_ShopCollision.y,
+		g_ShopCollision.width, g_ShopCollision.height, 0, 0, 96, 96,
+		g_ShopBlockingBox.y + g_ShopBlockingBox.height);
 }
 
 void Shop_DrawMenu()
@@ -217,10 +234,10 @@ void Shop_DrawMenu()
 	// money
 	char moneyStr[16];
 	snprintf(moneyStr, sizeof(moneyStr), "%d", SellBox_GetMoney());
-	Sprite_Draw(g_CoinTextureID, menuX + 20.0f, menuY + 56.0f, 32.0f, 32.0f, 0, 0, 96, 96, 0.0f);
-	Font_Print(moneyStr, menuX + 60.0f, menuY + 60.0f, 3.5f);
+	Sprite_Draw(g_CoinTextureID, menuX + 25.0f, menuY + 60.0f, 32.0f, 32.0f, 0, 0, 96, 96, 0.0f);
+	Font_Print(moneyStr, menuX + 65.0f, menuY + 65.0f, 3.5f);
 
-	Font_Print("SHOP", menuX + MENU_WIDTH * 0.5f - 40.0f, menuY + 55.0f, 4.25f);
+	Font_Print("SHOP", menuX + MENU_WIDTH * 0.5f - 40.0f, menuY + 65.0f, 4.25f);
 
 	float gridWidth = SHOP_COLUMN_COUNT * SLOT_WIDTH + (SHOP_COLUMN_COUNT - 1) * SLOT_SPACING_X;
 	float gridX = menuX + (MENU_WIDTH - gridWidth) * 0.5f;
@@ -356,4 +373,9 @@ bool Shop_TryBuy(int index)
 	Inventory_AddItem(item, qty);
 	g_PendingQty[index] = 1;
 	return true;
+}
+
+bool Shop_IsBlocking(const CollisionCircle& circle)
+{
+	return CircleVsBox(circle, g_ShopBlockingBox);
 }

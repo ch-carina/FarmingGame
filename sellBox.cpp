@@ -6,6 +6,7 @@
 #include "config.h"
 #include "texture.h"
 #include "sprite.h"
+#include "draw_queue.h"
 
 static constexpr float SELL_BOX_WIDTH = 192.0f;
 static constexpr float SELL_BOX_HEIGHT = 96.0f;
@@ -24,6 +25,10 @@ static bool g_ShowCoinPopup = false;
 static float g_CoinPopupTimer = 0.0f;
 static int g_PendingCoinAmount = 0;
 
+static constexpr float SELL_BOX_BLOCK_HEIGHT_RATIO = 0.6f;
+
+static CollisionBox g_SellBoxBlockingBox;
+static constexpr float SELL_BOX_WALKABLE_FRONT = 50.0f; 
 static int GetSellPrice(ItemType item)
 {
 	switch (item)
@@ -56,6 +61,14 @@ void SellBox_Initialize()
 		SELL_BOX_HEIGHT,
 		SCREEN_WIDTH - SELL_BOX_WIDTH - SELL_BOX_MARGIN,
 		SCREEN_HEIGHT - SELL_BOX_HEIGHT - SELL_BOX_MARGIN
+	};
+
+	g_SellBoxBlockingBox =
+	{
+		SELL_BOX_WIDTH,
+		SELL_BOX_HEIGHT - SELL_BOX_WALKABLE_FRONT,
+		g_SellBoxCollision.x,
+		g_SellBoxCollision.y
 	};
 
 	g_Money = 100;
@@ -108,17 +121,9 @@ void SellBox_Update(float delta_time)
 
 void SellBox_Draw()
 {
-	Sprite_Draw(g_SellBoxTextureID, g_SellBoxCollision.x, g_SellBoxCollision.y, 
-		g_SellBoxCollision.width, g_SellBoxCollision.height, 0, 0, (int)SELL_BOX_WIDTH, (int)SELL_BOX_HEIGHT, 0.0f);
-	if (g_ShowCoinPopup)
-	{
-		float t = g_CoinPopupTimer / COIN_POPUP_DURATION;
-		float coinX = g_SellBoxCollision.x + (g_SellBoxCollision.width - COIN_SIZE) * 0.5f;
-		float coinY = g_SellBoxCollision.y - COIN_RISE_DISTANCE * t; 
-		float alpha = 1.0f - t;
-
-		Sprite_Draw(g_CoinTextureID, coinX, coinY, COIN_SIZE, COIN_SIZE, 0, 0, 96, 96, 0.0f, { 1.0f, 1.0f },{1.0f, 1.0f, 1.0f, alpha});
-	}
+	DrawQueue_Push(g_SellBoxTextureID, g_SellBoxCollision.x, g_SellBoxCollision.y,
+		g_SellBoxCollision.width, g_SellBoxCollision.height, 0, 0, (int)SELL_BOX_WIDTH, (int)SELL_BOX_HEIGHT,
+		g_SellBoxBlockingBox.y + g_SellBoxBlockingBox.height);
 }
 
 int SellBox_GetMoney()
@@ -140,4 +145,22 @@ bool SellBox_SpendMoney(int amount)
 void SellBox_SetMoney(int amount)
 {
 	g_Money = amount;
+}
+
+void SellBox_DrawPopup()
+{
+	if (g_ShowCoinPopup)
+	{
+		float t = g_CoinPopupTimer / COIN_POPUP_DURATION;
+		float coinX = g_SellBoxCollision.x + (g_SellBoxCollision.width - COIN_SIZE) * 0.5f;
+		float coinY = g_SellBoxCollision.y - COIN_RISE_DISTANCE * t;
+		float alpha = 1.0f - t;
+
+		Sprite_Draw(g_CoinTextureID, coinX, coinY, COIN_SIZE, COIN_SIZE, 0, 0, 96, 96, 0.0f, { 1.0f, 1.0f }, { 1.0f, 1.0f, 1.0f, alpha });
+	}
+}
+
+bool SellBox_IsBlocking(const CollisionCircle& circle)
+{
+	return CircleVsBox(circle, g_SellBoxBlockingBox);
 }

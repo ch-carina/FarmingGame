@@ -21,6 +21,9 @@
 #include "damage_flash.h"
 #include "cloud.h"
 #include "water.h"
+#include "hue_change.h"
+#include "spotlight.h"
+#include "draw_queue.h"
 
 #ifdef _DEBUG
 #include "collision_debug.h"
@@ -57,6 +60,8 @@ void Game_Initialize()
 	Level_SetCheckpoint(); // Level 1's baseline: 100 coin + starting inventory
 	Blur_Initialize();
 	DamageFlash_Initialize();
+	HueChange_Initialize();
+	Spotlight_Initialize();
 	Fade_Start(FadeType::kIn, 0.5f, { 0.0f,0.0f,0.0f,1.0f });
 
 #ifdef _DEBUG
@@ -84,6 +89,8 @@ void Game_Finalize()
 	SellBox_Finalize();
 	Blur_Finalize(); 
 	DamageFlash_Finalize();
+	HueChange_Finalize();
+	Spotlight_Finalize();
 	Level_Finalize();
 
 #ifdef _DEBUG
@@ -96,6 +103,7 @@ void Game_Update(float delta_time)
 {
 	Level_Update(delta_time);
 	GamePlayer_Update(delta_time);
+	CropPlot_Update(delta_time);
 	CropUpdate(delta_time);
 	Water_Update(delta_time);
 	Cloud_Update(delta_time);
@@ -130,16 +138,27 @@ static void DrawWorld()
 	Ground_Draw();
 	Water_Draw();
 	CropPlot_Draw();
+
+	DrawQueue_Clear();
 	CropDraw();
 	Shop_Draw();
 	GamePlayer_Draw();
 	GamePlayer_BulletDraw();
 	EnemyDraw();
+	SellBox_Draw();
+	DrawQueue_Flush();
+
+	GamePlayer_DrawPopup();
+	SellBox_DrawPopup();
+
 	Cloud_Draw();
+
+	HueChange_DrawOverlay();
+	Spotlight_Draw();
+
 	GameScore_Draw();
 	Explosion_Draw();
 	Inventory_Draw();
-	SellBox_Draw();
 	DamageFlash_Draw();
 	Level_DrawHUD();
 }

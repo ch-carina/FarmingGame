@@ -18,6 +18,7 @@
 #include "explosion.h"
 #include "level.h"
 #include "water.h"
+#include "draw_queue.h"
 
 #include <DirectXMath.h>
 using namespace DirectX;
@@ -91,6 +92,19 @@ bool GamePlayer_TakeDamage()
 	g_KnockbackTimer = KNOCKBACK_DURATION;
 
 	return true;
+}
+
+void GamePlayer_DrawPopup()
+{
+	if (PlayerInteraction_IsHarvesting())
+	{
+		constexpr float POPUP_SIZE = 48.0f;
+		float popupX = g_Position.x + (PLAYER_WIDTH - POPUP_SIZE) * 0.5f;
+		float popupY = g_Position.y - POPUP_SIZE;
+
+		Sprite_Draw(Inventory_GetIconTexture(PlayerInteraction_GetHarvestPopupItem()), popupX, popupY, POPUP_SIZE, POPUP_SIZE,
+			0, 0, 96, 96, 0.0f);
+	}
 }
 
 void GamePlayer_Initialize(float start_x, float start_y)
@@ -270,18 +284,19 @@ void GamePlayer_Update(float delta_time)
 
 		float candidateX = g_Position.x + moveDelta.x;
 		CollisionCircle feetAtX{ { candidateX + feetRadius, g_Position.y + feetOffsetY }, feetRadius };
-		if (!Water_IsBlocked(feetAtX))
+		if (!Water_IsBlocked(feetAtX) && !Shop_IsBlocking(feetAtX) && !SellBox_IsBlocking(feetAtX))
 		{
 			g_Position.x = candidateX;
 		}
 
 		float candidateY = g_Position.y + moveDelta.y;
 		CollisionCircle feetAtY{ { g_Position.x + feetRadius, candidateY + feetOffsetY }, feetRadius };
-		if (!Water_IsBlocked(feetAtY))
+		if (!Water_IsBlocked(feetAtY) && !Shop_IsBlocking(feetAtY) && !SellBox_IsBlocking(feetAtY))
 		{
 			g_Position.y = candidateY;
 		}
 	}
+
 
 	// Keep player inside screen
 	if (g_Position.x < 0.0f)
@@ -315,19 +330,16 @@ void GamePlayer_Draw()
 {
 	float shadowCenterX = g_Position.x + PLAYER_WIDTH * 0.5f;
 	float shadowCenterY = g_Position.y + PLAYER_HEIGHT - 10.0f;
-	Sprite_Draw(g_ShadowTextureID,
+	float playerSortY = g_Position.y + PLAYER_HEIGHT;
+
+	int shadowTexW = (int)Texture_GetWidth(g_ShadowTextureID);
+	int shadowTexH = (int)Texture_GetHeight(g_ShadowTextureID);
+
+	DrawQueue_Push(g_ShadowTextureID,
 		shadowCenterX - SHADOW_WIDTH * 0.5f, shadowCenterY - SHADOW_HEIGHT * 0.5f,
-		SHADOW_WIDTH, SHADOW_HEIGHT, SHADOW_TINT);
+		SHADOW_WIDTH, SHADOW_HEIGHT,
+		0, 0, shadowTexW, shadowTexH,
+		playerSortY - 0.01f, 0.0f, SHADOW_TINT); // sorts just before the player, so it stays underfoot
 
 	PlayerAnimation_Draw(g_Player, g_Position.x, g_Position.y, PLAYER_WIDTH, PLAYER_HEIGHT);
-
-	if (PlayerInteraction_IsHarvesting())
-	{
-		constexpr float POPUP_SIZE = 48.0f;
-		float popupX = g_Position.x + (PLAYER_WIDTH - POPUP_SIZE) * 0.5f;
-		float popupY = g_Position.y - POPUP_SIZE;
-
-		Sprite_Draw(Inventory_GetIconTexture(PlayerInteraction_GetHarvestPopupItem()), popupX, popupY, POPUP_SIZE, POPUP_SIZE,
-			0, 0, 96, 96, 0.0f);
-	}
 }

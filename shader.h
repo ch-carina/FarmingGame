@@ -29,4 +29,8 @@ void Shader_SetBlurParams(const DirectX::XMFLOAT2& texelSize, const DirectX::XMF
 void Shader_LoadWaterPixelShader();
 void Shader_BeginWater();
 void Shader_SetWaterParams(float time, const DirectX::XMFLOAT2& worldOffset);
+
+void Shader_LoadSpotlightPixelShader();
+void Shader_BeginSpotlight();
+void Shader_SetSpotlightParams(const DirectX::XMFLOAT2& lightCenter, float innerRadius, float outerRadius, float darkAlpha, const DirectX::XMFLOAT2& screenSize);
 #endif // SHADER_H

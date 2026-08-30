@@ -1,6 +1,7 @@
 #pragma once
 #ifndef SELL_BOX_H
 #define SELL_BOX_H
+#include "collision.h"
 
 void SellBox_Initialize();
 void SellBox_Finalize();
@@ -14,4 +15,7 @@ int SellBox_GetMoney();
 bool SellBox_SpendMoney(int amount);
 void SellBox_SetMoney(int amount);
 
+void SellBox_DrawPopup();
+
+bool SellBox_IsBlocking(const CollisionCircle& circle);
 #endif //SELL_BOX_H

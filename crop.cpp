@@ -16,6 +16,7 @@
 #include "sprite.h"
 #include "texture.h"
 #include "explosion.h"
+#include "draw_queue.h"
 
 static constexpr int CROP_MAX = 32;
 
@@ -150,6 +151,11 @@ void CropUpdate(float deltaTime)
         // -----------------------------
         CropAnimInfo anim =
             CropAnimation_GetInfo(crop.type,crop.growthStage);
+        
+        if (anim.frameCount <= 0)
+        {
+            continue; // nothing to animate for this type/stage
+        }
 
         crop.animationTimer += deltaTime;
 
@@ -186,40 +192,24 @@ void CropUpdate(float deltaTime)
 
 void CropDraw()
 {
-
     for (int i = 0; i < g_CropCount; i++)
     {
         Crop& crop = g_Crops[i];
+        if (!crop.isActive) continue;
 
-        if (!crop.isActive)
-        {
-            continue;
-        }
+        CropAnimInfo anim = CropAnimation_GetInfo(crop.type, crop.growthStage);
+        if (anim.columns <= 0) continue;
 
-        CropAnimInfo anim =
-            CropAnimation_GetInfo(
-                crop.type,
-                crop.growthStage);
+        int frame = anim.startFrame + crop.currentFrame;
+        int column = frame % anim.columns;
+        int row = frame / anim.columns;
+        int sourceX = column * anim.frameWidth;
+        int sourceY = row * anim.frameHeight;
 
-        int frame =
-            anim.startFrame + crop.currentFrame;
+        float sortY = crop.y + CROP_DISPLAY_SIZE;
 
-        int column =
-            frame % anim.columns;
-
-        int row =
-            frame / anim.columns;
-
-        int sourceX =
-            column * anim.frameWidth;
-
-        int sourceY =
-            row * anim.frameHeight;
-
-        Sprite_Draw(
-            anim.textureID,crop.x,crop.y, CROP_DISPLAY_SIZE,CROP_DISPLAY_SIZE,
-            sourceX,sourceY,
-            anim.frameWidth,anim.frameHeight, 0.0f);
+        DrawQueue_Push(anim.textureID, crop.x, crop.y, CROP_DISPLAY_SIZE, CROP_DISPLAY_SIZE,
+            sourceX, sourceY, anim.frameWidth, anim.frameHeight, sortY);
 
         if (crop.wateredCrop && crop.growthStage == CropGrowth_Ready)
         {
@@ -228,12 +218,12 @@ void CropDraw()
             int rRow = crop.rankFrame / rankAnim.columns;
 
             constexpr float BADGE_SIZE = 24.0f;
-            Sprite_Draw(
-                rankAnim.textureID,
+            DrawQueue_Push(rankAnim.textureID,
                 crop.x + CROP_DISPLAY_SIZE - BADGE_SIZE, crop.y,
                 BADGE_SIZE, BADGE_SIZE,
                 rCol * rankAnim.frameWidth, rRow * rankAnim.frameHeight,
-                rankAnim.frameWidth, rankAnim.frameHeight, 0.0f);
+                rankAnim.frameWidth, rankAnim.frameHeight,
+                sortY + 0.01f); // sorts just after its crop, so the badge stays on top of it
         }
     }
 }

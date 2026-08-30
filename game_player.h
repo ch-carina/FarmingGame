@@ -52,4 +52,6 @@ CollisionCircle GamePlayer_GetCollisionCircle();
 
 bool GamePlayer_TakeDamage(); // returns true if damage was actually applied
 
+void GamePlayer_DrawPopup();
+
 #endif GAME_PLAYER_H

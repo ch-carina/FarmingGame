@@ -95,6 +95,7 @@ static constexpr ShopItem g_Level2ShopItems[] =
     { ItemType_WheatSeed, 10 },
     { ItemType_LettuceSeed, 15 },
     { ItemType_CornSeed, 30 },
+    { ItemType_Scarecrow, 30 },
 };
 
 //---------------- 
@@ -106,7 +107,7 @@ static constexpr PlotRegion g_Level3Regions[] =
     { 1, 1, 2, 2 },
     { 4, 1, 2, 2 },
     { 7, 1, 2, 2 },
-    { 1, 4, 3, 3 },
+    { 4, 4, 3, 3 },
 };
 
 static constexpr PlotRegion g_Level3WaterRegions[] =
@@ -121,6 +122,7 @@ static constexpr ShopItem g_Level3ShopItems[] =
     { ItemType_LettuceSeed, 10 },
     { ItemType_CornSeed, 30 },
     { ItemType_BlueberrySeed, 35 },
+    { ItemType_Scarecrow, 30 },
 };
 
 //Controls level information 
@@ -134,8 +136,8 @@ static constexpr ShopItem g_Level3ShopItems[] =
 static constexpr LevelLayout g_Levels[Level_MAX] =
 {
     { g_Level1Regions, 3 , 90.0f,  g_Level1ShopItems, 2, 200, g_Level1WaterRegions, 2 },
-    { g_Level2Regions, 4 , 120.0f,  g_Level2ShopItems, 4, 400, g_Level2WaterRegions, 1 },
-    { g_Level3Regions, 5 , 180.0f, g_Level3ShopItems, 5, 600, g_Level3WaterRegions, 1 },
+    { g_Level2Regions, 4 , 120.0f,  g_Level2ShopItems, 5, 400, g_Level2WaterRegions, 1 },
+    { g_Level3Regions, 4 , 180.0f, g_Level3ShopItems, 6, 600, g_Level3WaterRegions, 1 },
 };
 
 static void Draw3Slice(int leftID, int midID, int rightID, float capWidth, float x, float y, float width, float height)
@@ -162,7 +164,7 @@ void Level_Initialize()
     g_AudioID_LevelStart = LoadAudio("assets/SFX/level_start.wav");
     g_PanelCapWidth = (float)Texture_GetWidth(g_PanelCapLeftID);
 
-    Level_Load(Level1);
+    Level_Load(Level2);
 }
 
 void Level_Finalize()

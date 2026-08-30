@@ -155,6 +155,22 @@ void PlayerInteraction_HandleUse(float delta_time)
 			}
 			Player_ChangeState(Watering);
 		}
+		else if (currentPlotIndex != -1 && !plot->occupied && Inventory_GetSlotItem(Inventory_GetSelectedSlot()) == ItemType_Scarecrow)
+		{
+			Player_ChangeState(Planting);
+			plantingTimer += delta_time;
+
+			if (plantingTimer >= PLANT_TIME)
+			{
+				if (Inventory_RemoveItem(ItemType_Scarecrow, 1))
+				{
+					CropPlot_PlaceScarecrow(currentPlotIndex);
+				}
+				plantingTimer = 0.0f;
+				currentPlotIndex = -1;
+				Player_ChangeState(Idle);
+			}
+		}
 		else if (currentPlotIndex != -1 && !plot->occupied && CropForSeed(Inventory_GetSlotItem(Inventory_GetSelectedSlot()), selectedCropType))
 		{
 			Player_ChangeState(Planting);

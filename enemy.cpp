@@ -25,6 +25,7 @@
 #include "game.h"
 #include "explosion.h"
 #include "water.h"
+#include "draw_queue.h"
 
 static constexpr int ENEMY_MAX{ 128 };
 static Enemy g_Enemies[ENEMY_MAX]{ };
@@ -277,10 +278,15 @@ void EnemyUpdate(float delta_time)
 			constexpr float ARRIVAL_DIST = 8.0f;
 
 			CropPlot* targetPlot = CropPlot_Get(e.targetPlotIndex);
-
 			if (distSq <= ARRIVAL_DIST * ARRIVAL_DIST)
 			{
-				if (targetPlot != nullptr && targetPlot->occupied)
+				if (targetPlot != nullptr && CropPlot_IsAdjacentToScarecrow(e.targetPlotIndex))
+				{
+					// a nearby scarecrow scares it off before it can start eating
+					e.state = EnemyState_Return;
+					e.animState = EnemyAnim_Escape;
+				}
+				else if (targetPlot != nullptr && targetPlot->occupied)
 				{
 					e.state = EnemyState_Eating;
 					e.animState = EnemyAnim_Eating;
@@ -418,6 +424,7 @@ void EnemyDraw()
 		Enemy& e = g_Enemies[i];
 
 		AnimInfo anim = EnemyAnimation_GetInfo(e.type, e.animState);
+		if (anim.columns <= 0) continue;
 
 		int frame = anim.startFrame + e.currentFrame;
 		int column = frame % anim.columns;
@@ -426,10 +433,9 @@ void EnemyDraw()
 		int sourceX = column * anim.frameWidth;
 		int sourceY = row * anim.frameHeight;
 
-		Sprite_Draw(anim.textureID, e.x, e.y,
-			ENEMY_DRAW_SIZE, ENEMY_DRAW_SIZE,
-			sourceX, sourceY,
-			anim.frameWidth, anim.frameHeight, 0.0f);
+		DrawQueue_Push(anim.textureID, e.x, e.y, ENEMY_DRAW_SIZE, ENEMY_DRAW_SIZE,
+			sourceX, sourceY, anim.frameWidth, anim.frameHeight,
+			e.y + ENEMY_DRAW_SIZE);
 	}
 }
 

@@ -29,6 +29,7 @@ enum ItemType
     ItemType_Corn,
     ItemType_BlueberrySeed, 
     ItemType_Blueberry,
+    ItemType_Scarecrow,
     ItemType_MAX
 };
 

@@ -13,6 +13,7 @@
 #define SHOP_H
 
 #include "inventory.h"
+#include "collision.h"
 
 void Shop_Initialize(); 
 void Shop_Finalize(); 
@@ -36,5 +37,5 @@ int Shop_GetSelectedSlot();
 bool Shop_CanBuy(int index);      // affordable AND fits in inventory
 bool Shop_TryBuy(int index);      // false if Shop_CanBuy would be false; otherwise spends money + adds item
 
-
+bool Shop_IsBlocking(const CollisionCircle& circle);
 #endif //SHOP_H 

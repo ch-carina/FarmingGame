@@ -6,6 +6,8 @@
 								   Date: 2026/06/28
  Note: 
  - Adding Blur Shader Information [2026/08/13] 
+ - Adding Water Shader Information [2026/08/29] 
+ - Adding Spotlight Shader Information [2026/08/30]
  ----------------------------------------------------*/
 #include <d3d11.h>
 #include <DirectXMath.h>
@@ -29,6 +31,10 @@ static ID3D11DeviceContext* g_pContext = nullptr;
 
 static ID3D11PixelShader* g_pWaterPixelShader = nullptr;
 static ID3D11Buffer* g_pWaterConstantBuffer = nullptr;
+
+static ID3D11PixelShader* g_pSpotlightPixelShader = nullptr;
+static ID3D11Buffer* g_pSpotlightConstantBuffer = nullptr;
+
 
 
 bool Shader_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
@@ -130,6 +136,7 @@ bool Shader_Initialize(ID3D11Device* pDevice, ID3D11DeviceContext* pContext)
 
 	Shader_LoadBlurPixelShader();
 	Shader_LoadWaterPixelShader();
+	Shader_LoadSpotlightPixelShader();
 
 	return true;
 }
@@ -144,6 +151,8 @@ void Shader_Finalize()
 	SAFE_RELEASE(g_pVertexShader);
 	SAFE_RELEASE(g_pWaterConstantBuffer);
 	SAFE_RELEASE(g_pWaterPixelShader);
+	SAFE_RELEASE(g_pSpotlightConstantBuffer);
+	SAFE_RELEASE(g_pSpotlightPixelShader);
 }
 
 void Shader_SetMatrix(const DirectX::XMMATRIX& matrix)
@@ -249,4 +258,45 @@ void Shader_SetWaterParams(float time, const DirectX::XMFLOAT2& worldOffset)
 	struct WaterParams { float time; float pad1[3]; XMFLOAT2 worldOffset; float pad2[2]; } params{ time, { 0,0,0 }, worldOffset, { 0,0 } };
 	g_pContext->UpdateSubresource(g_pWaterConstantBuffer, 0, nullptr, &params, 0, 0);
 	g_pContext->PSSetConstantBuffers(0, 1, &g_pWaterConstantBuffer);
+}
+
+void Shader_LoadSpotlightPixelShader()
+{
+	std::ifstream ifs_ps("shader_pixel_spotlight.cso", std::ios::binary);
+	if (!ifs_ps) {
+		MessageBox(nullptr, "ピクセルシェーダーの読み込みに失敗しました\n\nshader_pixel_spotlight.cso", "エラー", MB_OK);
+		return;
+	}
+
+	ifs_ps.seekg(0, std::ios::end);
+	std::streamsize filesize = ifs_ps.tellg();
+	ifs_ps.seekg(0, std::ios::beg);
+
+	unsigned char* psbinary_pointer = new unsigned char[filesize];
+	ifs_ps.read((char*)psbinary_pointer, filesize);
+	ifs_ps.close();
+
+	g_pDevice->CreatePixelShader(psbinary_pointer, filesize, nullptr, &g_pSpotlightPixelShader);
+	delete[] psbinary_pointer;
+
+	D3D11_BUFFER_DESC buffer_desc{};
+	buffer_desc.ByteWidth = sizeof(XMFLOAT4) * 2;
+	buffer_desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	g_pDevice->CreateBuffer(&buffer_desc, nullptr, &g_pSpotlightConstantBuffer);
+}
+
+void Shader_BeginSpotlight()
+{
+	g_pContext->VSSetShader(g_pVertexShader, nullptr, 0);
+	g_pContext->PSSetShader(g_pSpotlightPixelShader, nullptr, 0);
+	g_pContext->IASetInputLayout(g_pInputLayout);
+	g_pContext->VSSetConstantBuffers(0, 1, &g_pVSConstantBuffer);
+}
+
+void Shader_SetSpotlightParams(const DirectX::XMFLOAT2& lightCenter, float innerRadius, float outerRadius, float darkAlpha, const DirectX::XMFLOAT2& screenSize)
+{
+	struct SpotlightParams { XMFLOAT2 lightCenter; float innerRadius; float outerRadius; float darkAlpha; XMFLOAT2 screenSize; float pad; }
+	params{ lightCenter, innerRadius, outerRadius, darkAlpha, screenSize, 0.0f };
+	g_pContext->UpdateSubresource(g_pSpotlightConstantBuffer, 0, nullptr, &params, 0, 0);
+	g_pContext->PSSetConstantBuffers(0, 1, &g_pSpotlightConstantBuffer);
 }

@@ -87,6 +87,7 @@ void EnemyAnimation_Update(Enemy& enemy, float deltaTime)
         EnemyAnimation_GetInfo(
             enemy.type,
             enemy.animState);
+    if (anim.frameCount <= 0) return;
 
     enemy.animTimer += deltaTime;
 
