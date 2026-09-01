@@ -37,11 +37,11 @@ enum TutorialStep
 static const char* g_Prompts[TutorialStep_MAX] =
 {
 	"Use W A S D to move around",
-	"Walk onto the glowing plot, press 2 to select your Carrot Seed, then walk onto the plot and hold E to plant",
+	"Walk onto the glowing plot, \npress 2 to select your Carrot Seed, \nthen walk onto the plot and hold E to plant",
 	"An animal is after your crop! Hold SPACE to shoot, arrow keys to aim",
 	"Select your Water Pail (number key 1), then press E on the plot",
 	"Wait for the crop to finish growing, then press E to harvest it",
-	"Carry your crop to the Sell Box (bottom right), select correct inventory slot and then press E to sell",
+	"Carry your crop to the Sell Box (bottom right), \nselect correct inventory slot \nand then press E to sell",
 	"Visit the Shop, press E to open it, and buy something",
 	"Tutorial Complete! Press ENTER to officially start farming!",
 };
@@ -201,9 +201,9 @@ void Tutorial_Draw()
 	DrawPlantGlow();
 
     const char* text = g_Prompts[g_Step];
-    constexpr float SCALE = 2.0f;
+    constexpr float SCALE = 3.0f;
     XMFLOAT2 size = Font_MeasureText(text, SCALE);
-    Font_Print(text, (SCREEN_WIDTH - size.x) * 0.5f, SCREEN_HEIGHT - size.y - 30.0f, SCALE);
+    Font_Print(text, (SCREEN_WIDTH - size.x) * 0.5f, SCREEN_HEIGHT - size.y - 150.0f, SCALE);
 }
 
 bool Tutorial_IsComplete()
