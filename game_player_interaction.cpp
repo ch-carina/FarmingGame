@@ -55,6 +55,8 @@ static bool CropForSeed(ItemType item, CropType& outType)
 static float plantingTimer = 0.0f;
 static constexpr float PLANT_TIME = 2.0f; //time it takes to plant a crop
 static int currentPlotIndex = -1; //index of the current plot being planted
+static float wateringTimer = 0.0f;
+static constexpr float WATER_TIME = 1.0f;
 
 //Harvesting information 
 static constexpr float HARVEST_DISPLAY_TIME = 1.0f;
@@ -118,6 +120,7 @@ void PlayerInteraction_HandleUse(float delta_time)
 		else if (overlappingPlot != currentPlotIndex)
 		{
 			plantingTimer = 0.0f;
+			wateringTimer = 0.0f;
 			currentPlotIndex = -1;
 		}
 
@@ -142,7 +145,10 @@ void PlayerInteraction_HandleUse(float delta_time)
 		}
 		else if (needsWater)
 		{
-			if (InputKeyboard_IsTrigger(KK_E))
+			Player_ChangeState(Watering);
+			wateringTimer += delta_time;
+
+			if (wateringTimer >= WATER_TIME)
 			{
 				Crop_Water(plot->cropIndex);
 
@@ -152,8 +158,11 @@ void PlayerInteraction_HandleUse(float delta_time)
 					WaterPlotIfNeeded(CropPlot_GetIndexAt(plot->x, plot->y + PLOT_SIZE));
 					WaterPlotIfNeeded(CropPlot_GetIndexAt(plot->x + PLOT_SIZE, plot->y + PLOT_SIZE));
 				}
+
+				wateringTimer = 0.0f;
+				currentPlotIndex = -1;
+				Player_ChangeState(Idle);
 			}
-			Player_ChangeState(Watering);
 		}
 		else if (currentPlotIndex != -1 && !plot->occupied && Inventory_GetSlotItem(Inventory_GetSelectedSlot()) == ItemType_Scarecrow)
 		{
@@ -191,6 +200,7 @@ void PlayerInteraction_HandleUse(float delta_time)
 		else
 		{
 			plantingTimer = 0.0f;
+			wateringTimer = 0.0f;
 			Player_ChangeState(Idle);
 		}
 	}

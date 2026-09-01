@@ -48,6 +48,7 @@ struct Crop
     
     bool wateredCrop; 
     CropRank rank;
+    bool growthPaused; // used only for tutorial right now. Proabably will only be used there
     float waterVfxTimer;
     
     int cropCost; 
@@ -79,6 +80,8 @@ void Crop_Destroy(int index);
 void Crop_Water(int index);
 
 int Crop_GetRank(int index);
+
+void Crop_SetGrowthPaused(int index, bool paused);
 
 const Crop& CropGet(int index);
 

@@ -23,6 +23,7 @@
 #include "upgrade.h"
 #include "water.h"
 #include "Audio.h"
+#include "tutorial.h"
 #include <cstdio>
 
 static LevelType g_CurrentLevel = Level1;
@@ -49,6 +50,19 @@ static constexpr float COUNTDOWN_PANEL_WIDTH = 420.0f;
 static constexpr float COUNTDOWN_PANEL_HEIGHT = 260.0f;
 static int g_AudioID_LevelStart = -1;
 static bool g_GoSoundPlayed = false;
+
+//---------------- 
+//Tutorial plots  
+//----------------
+static constexpr PlotRegion g_TutorialRegions[] =
+{
+    { 4, 2, 2, 2 },   
+};
+
+static constexpr ShopItem g_TutorialShopItems[] =
+{
+    { ItemType_CarrotSeed, 10 },
+};
 
 //---------------- 
 //Level 1 plots  
@@ -135,6 +149,7 @@ static constexpr ShopItem g_Level3ShopItems[] =
 //Water plots 
 static constexpr LevelLayout g_Levels[Level_MAX] =
 {
+    { g_TutorialRegions, 1, 9999.0f, g_TutorialShopItems, 1, 0, nullptr, 0 },
     { g_Level1Regions, 3 , 90.0f,  g_Level1ShopItems, 2, 200, g_Level1WaterRegions, 2 },
     { g_Level2Regions, 4 , 120.0f,  g_Level2ShopItems, 5, 400, g_Level2WaterRegions, 1 },
     { g_Level3Regions, 4 , 180.0f, g_Level3ShopItems, 6, 600, g_Level3WaterRegions, 1 },
@@ -158,18 +173,20 @@ const LevelLayout& Level_GetCurrentLayout()
 void Level_Initialize()
 {
     Upgrade_Initialize();
+    Tutorial_Initialize();
     g_PanelCapLeftID = Texture_Load(L"assets/UI/UI_L.PNG", true);
     g_PanelCapMidID = Texture_Load(L"assets/UI/UI_M.PNG", true);
     g_PanelCapRightID = Texture_Load(L"assets/UI/UI_R.PNG", true);
     g_AudioID_LevelStart = LoadAudio("assets/SFX/level_start.wav");
     g_PanelCapWidth = (float)Texture_GetWidth(g_PanelCapLeftID);
 
-    Level_Load(Level1);
+    Level_Load(LevelTutorial);
 }
 
 void Level_Finalize()
 {
     Upgrade_Finalize();
+    Tutorial_Finalize();
     UnloadAudio(g_AudioID_LevelStart);
     Texture_Release(g_PanelCapLeftID);
     Texture_Release(g_PanelCapMidID);
@@ -189,13 +206,31 @@ void Level_Load(LevelType level)
     g_Result = LevelResult_None;
     g_ShowResult = false;
 
-    g_ShowCountdown = true;
-    g_CountdownTimer = COUNTDOWN_DURATION;
-    g_GoSoundPlayed = false;
+    if (level == LevelTutorial)
+    {
+        Tutorial_Begin();
+        g_ShowCountdown = false; 
+    }
+    else
+    {
+        g_ShowCountdown = true;
+        g_CountdownTimer = COUNTDOWN_DURATION;
+        g_GoSoundPlayed = false;
+    }
 }
 
 void Level_Update(float delta_time)
 {
+    if (g_CurrentLevel == LevelTutorial)
+    {
+        Tutorial_Update(delta_time);
+        if (Tutorial_IsComplete())
+        {
+            Level_Load(Level1);
+            Level_SetCheckpoint();
+        }
+        return;
+    }
     if (g_ShowCountdown)
     {
         g_CountdownTimer -= delta_time;
@@ -265,6 +300,7 @@ void Level_Update(float delta_time)
 
 void Level_DrawHUD()
 {
+    if (Level_GetCurrent() == LevelTutorial) return;
     int totalSeconds = (int)(g_TimeRemaining + 0.5f);
     if (totalSeconds < 0) totalSeconds = 0;
 
@@ -331,6 +367,12 @@ static void DrawCountdownPanel()
 
 void Level_DrawResult()
 {
+    if (g_CurrentLevel == LevelTutorial)
+    {
+        Tutorial_Draw();
+        return;
+    }
+
     if (g_ShowCountdown)
     {
         DrawCountdownPanel();

@@ -56,6 +56,7 @@ void CropInitialize()
 		g_Crops[i].wateredCrop = false;
 		g_Crops[i].rank = CropRank_Normal;
         g_Crops[i].waterVfxTimer = 0.0f; 
+		g_Crops[i].growthPaused = false;
     }
 
     CropAnimation_Initialize();
@@ -86,6 +87,7 @@ int CropCreate(CropType type, float x, float y)
 	crop.wateredCrop = false;
 	crop.rank = CropRank_Normal;
 	crop.animationTimer = 0.0f;
+    crop.growthPaused = false;
 	crop.currentFrame = 0;
 	crop.isActive = true;
     crop.waterVfxTimer = 0.0f; 
@@ -93,6 +95,12 @@ int CropCreate(CropType type, float x, float y)
     int newIndex = g_CropCount; 
     g_CropCount++;
     return newIndex;
+}
+
+void Crop_SetGrowthPaused(int index, bool paused) 
+{
+    if (index < 0 || index >= g_CropCount) return;
+    g_Crops[index].growthPaused = paused;
 }
 
 void CropUpdate(float deltaTime)
@@ -112,7 +120,10 @@ void CropUpdate(float deltaTime)
         // -----------------------------
         // Update growth time
         // -----------------------------
-        crop.growthTime += deltaTime;
+        if (!crop.growthPaused)
+        {
+            crop.growthTime += deltaTime;
+        }
 
         const CropGrowthTiming& timing = g_CropGrowthTimings[crop.type];
 
@@ -244,12 +255,13 @@ void Crop_Destroy(int index)
 
 void Crop_Water(int index)
 {
-	if (index < 0 || index >= g_CropCount)
-	{
-		return;
-	}
-	g_Crops[index].wateredCrop = true;
-    g_Crops[index].waterVfxTimer = 0.0f; 
+    if (index < 0 || index >= g_CropCount)
+    {
+        return;
+    }
+    g_Crops[index].wateredCrop = true;
+    g_Crops[index].rank = CropRank_Watered;  
+    g_Crops[index].waterVfxTimer = 0.0f;
     Explosion_Create(waterSplashVFX, g_Crops[index].x, g_Crops[index].y, false);
 }
 
