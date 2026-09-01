@@ -68,7 +68,7 @@ void SellBox_Initialize()
 		SELL_BOX_WIDTH,
 		SELL_BOX_HEIGHT - SELL_BOX_WALKABLE_FRONT,
 		g_SellBoxCollision.x,
-		g_SellBoxCollision.y
+		g_SellBoxCollision.y + SELL_BOX_WALKABLE_FRONT
 	};
 
 	g_Money = 100;

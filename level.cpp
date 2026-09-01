@@ -164,7 +164,7 @@ void Level_Initialize()
     g_AudioID_LevelStart = LoadAudio("assets/SFX/level_start.wav");
     g_PanelCapWidth = (float)Texture_GetWidth(g_PanelCapLeftID);
 
-    Level_Load(Level2);
+    Level_Load(Level1);
 }
 
 void Level_Finalize()

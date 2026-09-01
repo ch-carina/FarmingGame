@@ -60,6 +60,40 @@ static XMFLOAT2 FacingToDirection(PlayerFacing facing)
 	return { 1.0f, 0.0f };
 }
 
+static XMFLOAT2 FacingToAimDirection(PlayerFacing facing)
+{
+	constexpr float DIAG = 0.70710678f; 
+
+	bool aimLeft = InputKeyboard_IsPress(KK_LEFT);
+	bool aimRight = InputKeyboard_IsPress(KK_RIGHT);
+	bool aimUp = InputKeyboard_IsPress(KK_UP);
+	bool aimDown = InputKeyboard_IsPress(KK_DOWN);
+
+	switch (facing)
+	{
+	case Up:
+		if (aimLeft)  return { -DIAG, -DIAG };
+		if (aimRight) return { DIAG, -DIAG };
+		return { 0.0f, -1.0f };
+
+	case Down:
+		if (aimLeft)  return { -DIAG, DIAG };
+		if (aimRight) return { DIAG, DIAG };
+		return { 0.0f, 1.0f };
+
+	case Left:
+		if (aimUp)    return { -DIAG, -DIAG };
+		if (aimDown)  return { -DIAG, DIAG };
+		return { -1.0f, 0.0f };
+
+	case Right:
+		if (aimUp)    return { DIAG, -DIAG };
+		if (aimDown)  return { DIAG, DIAG };
+		return { 1.0f, 0.0f };
+	}
+	return FacingToDirection(facing);
+}
+
 static PlayerAnimState FacingToWalkState(PlayerFacing facing)
 {
 	switch (facing)
@@ -230,7 +264,7 @@ void GamePlayer_Update(float delta_time)
 	{
 		Player_ChangeState(Shooting);
 
-		XMFLOAT2 shootDir = FacingToDirection(g_Player.facing);
+		XMFLOAT2 shootDir = FacingToAimDirection(g_Player.facing);;
 		float spawnX = g_Position.x + (PLAYER_WIDTH * 0.5f) + shootDir.x * PLAYER_WIDTH * 0.5f;
 		float spawnY = g_Position.y + (PLAYER_HEIGHT * 0.5f) + shootDir.y * PLAYER_HEIGHT * 0.5f;
 
