@@ -22,6 +22,7 @@
 #include "config.h"
 #include "draw_queue.h"
 #include <cstdio>
+#include <cmath>
 
 static int g_shopInGameTextureID = TEXTURE_INVALID_ID;
 static constexpr float SHOP_WIDTH = 256.0f;
@@ -73,6 +74,14 @@ static constexpr float SLOT_SPACING_Y = 20.0f;
 static constexpr float GRID_TOP_OFFSET = 100.0f;
 static constexpr float ICON_SIZE = 48.0f;
 static constexpr float SELECT_SCALE = 1.05f;
+
+//variables if player cannnot buy an item 
+static float g_ShakeTimer = 0.0f;
+static int g_ShakeSlot = -1;
+static constexpr float SHAKE_DURATION = 0.2f;
+static constexpr float SHAKE_FREQUENCY = 20.0f;
+static constexpr float SHAKE_AMPLITUDE = 10.0f;
+static const DirectX::XMFLOAT4 UNAFFORDABLE_COLOR = { 1.0f, 0.3f, 0.3f, 1.0f }; // a red tint 
 
 static constexpr float SHOP_BLOCK_HEIGHT_RATIO = 0.55f; // only the back/roof blocks movement -- the front counter stays walkable
 
@@ -221,9 +230,19 @@ void Shop_Update(float delta_time)
 	if (InputKeyboard_IsTrigger(KK_RIGHT)) ChangeQuantity(g_SelectedSlot, 1);
 	else if (InputKeyboard_IsTrigger(KK_LEFT)) ChangeQuantity(g_SelectedSlot, -1);
 
+	if (g_ShakeTimer > 0.0f) 
+	{
+		g_ShakeTimer -= delta_time;
+		if (g_ShakeTimer < 0.0f) g_ShakeTimer = 0.0f;
+	}
+
 	if (InputKeyboard_IsTrigger(KK_E))
 	{
-		Shop_TryBuy(g_SelectedSlot);
+		if (!Shop_TryBuy(g_SelectedSlot) && Shop_IsSlotUnlocked(g_SelectedSlot))
+		{
+			g_ShakeSlot = g_SelectedSlot;
+			g_ShakeTimer = SHAKE_DURATION;
+		}
 	}
 }
 
@@ -270,6 +289,12 @@ void Shop_DrawMenu()
 		float slotX = gridX + col * (SLOT_WIDTH + SLOT_SPACING_X) - (slotW - SLOT_WIDTH) * 0.5f;
 		float slotY = gridY + row * (SLOT_HEIGHT + SLOT_SPACING_Y) - (slotH - SLOT_HEIGHT) * 0.5f;
 
+		if (i == g_ShakeSlot && g_ShakeTimer > 0.0f)
+		{
+			float elapsed = SHAKE_DURATION - g_ShakeTimer;
+			slotX += sinf(elapsed *SHAKE_FREQUENCY) * SHAKE_AMPLITUDE*(g_ShakeTimer/SHAKE_DURATION);
+		}
+
 		DirectX::XMFLOAT4 tint = unlocked
 			? DirectX::XMFLOAT4{ 1.0f, 1.0f, 1.0f, 1.0f }
 		: DirectX::XMFLOAT4{ 0.4f, 0.4f, 0.4f, 1.0f };
@@ -295,12 +320,14 @@ void Shop_DrawMenu()
 		constexpr float BOTTOM_ROW_SCALE = 2.0f;
 		float bottomRowY = slotY + slotH - Font_MeasureText("0", BOTTOM_ROW_SCALE).y - 13.0f;
 
-		char priceStr[16];
+		bool canAfford = Shop_CanBuy(i);
+		DirectX::XMFLOAT4 priceColor = canAfford?DirectX::XMFLOAT4{ 1.0f, 1.0f, 1.0f, 1.0f }:UNAFFORDABLE_COLOR;
+
+		char priceStr[32];
 		snprintf(priceStr, sizeof(priceStr), "Buy:%dC", Shop_GetItemPrice(i));
-		Font_Print(priceStr, nameX, bottomRowY, BOTTOM_ROW_SCALE);
+		Font_Print(priceStr, nameX, bottomRowY, BOTTOM_ROW_SCALE, priceColor);
 		
-		char sellPriceStr[16];
-		SellBox_GetSellPrice(GetCropForSeed(item));
+		char sellPriceStr[32];
 		snprintf(sellPriceStr, sizeof(sellPriceStr), "Sell:%dC", SellBox_GetSellPrice(GetCropForSeed(item)));
 		DirectX::XMFLOAT2 sellPriceSize = Font_MeasureText(sellPriceStr, BOTTOM_ROW_SCALE);
 		Font_Print( sellPriceStr, nameX + sellPriceSize.x + 7.5f, bottomRowY, BOTTOM_ROW_SCALE);
@@ -308,7 +335,7 @@ void Shop_DrawMenu()
 		char qtyStr[8];
 		snprintf(qtyStr, sizeof(qtyStr), "< %d >", g_PendingQty[i]);
 		DirectX::XMFLOAT2 qtySize = Font_MeasureText(qtyStr, BOTTOM_ROW_SCALE);
-		Font_Print(qtyStr, slotX + slotW - qtySize.x - 12.0f, bottomRowY, BOTTOM_ROW_SCALE);
+		Font_Print(qtyStr, slotX + slotW - qtySize.x - 12.0f, bottomRowY, BOTTOM_ROW_SCALE,priceColor);
 	}
 
 	Font_Print("WASD Move   Arrows Qty   E Buy   ESC Close",
