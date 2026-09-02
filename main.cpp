@@ -26,7 +26,7 @@
 //Window情報
 
 static constexpr char WINDOW_CLASS[] = "GameWindow";
-static constexpr char TITLE[] = "ウィンドウ表示";
+static constexpr char TITLE[] = "Sprouts";
 
 //WindowProcedure Prototype宣言
 

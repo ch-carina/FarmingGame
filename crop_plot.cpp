@@ -219,8 +219,9 @@ int CropPlot_GetPlayerPlot()
 
     for (int i = 0; i < g_PlotCount; i++)
     {
-        if (CircleVsBox(playerCircle,
-            g_CropPlots[i].cropCollision))
+		const CollisionBox& box = g_CropPlots[i].cropCollision;
+        if (playerCircle.center.x >= box.x && playerCircle.center.x < box.x + box.width &&
+            playerCircle.center.y >= box.y && playerCircle.center.y < box.y + box.height)
         {
             return i;
         }

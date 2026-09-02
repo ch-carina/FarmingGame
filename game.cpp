@@ -165,7 +165,8 @@ static void DrawWorld()
 
 void Game_Draw()
 {
-	if (Shop_IsOpen())
+	bool needsBlur = Shop_IsOpen() || Level_IsShowingResult();
+	if (needsBlur)
 	{
 		Blur_BeginCapture();
 		DrawWorld();
@@ -177,6 +178,11 @@ void Game_Draw()
 	else
 	{
 		DrawWorld();
+	}
+
+	if (Shop_IsOpen())
+	{
+		Shop_DrawMenu();
 	}
 
 	Level_DrawResult();
