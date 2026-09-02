@@ -226,6 +226,8 @@ void Level_Update(float delta_time)
         Tutorial_Update(delta_time);
         if (Tutorial_IsComplete())
         {
+            SellBox_SetMoney(g_CheckpointMoney);
+            Inventory_SetSnapshot(g_CheckpointInventory);
             Level_Load(Level1);
             Level_SetCheckpoint();
         }
