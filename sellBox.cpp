@@ -131,6 +131,11 @@ int SellBox_GetMoney()
 	return g_Money;
 }
 
+int SellBox_GetSellPrice(ItemType item)
+{
+	return GetSellPrice(item);
+}
+
 bool SellBox_SpendMoney(int amount)
 {
 	if (amount <= 0 || amount > g_Money)
@@ -164,3 +169,4 @@ bool SellBox_IsBlocking(const CollisionCircle& circle)
 {
 	return CircleVsBox(circle, g_SellBoxBlockingBox);
 }
+

@@ -43,7 +43,7 @@ static const char* g_Prompts[TutorialStep_MAX] =
 	"Wait for the crop to finish growing, then press E to harvest it",
 	"Carry your crop to the Sell Box (bottom right), \nselect correct inventory slot \nand then press E to sell",
 	"Visit the Shop, press E to open it, and buy something",
-	"Tutorial Complete! Press ENTER to officially start farming!",
+	"Tutorial Complete! \nPress ENTER to officially start farming!",
 };
 
 static TutorialStep g_Step = TutorialStep_Move;
@@ -184,8 +184,8 @@ static void DrawPlantGlow()
 {
     if (g_Step != TutorialStep_Plant) return;
 
-    float pulse = (sinf(g_GlowTimer * 4.0f) + 1.0f) * 0.5f; // 0..1
-    XMFLOAT4 glowColor{ 1.0f, 0.9f, 0.2f, 0.25f + pulse * 0.35f }; // gold, alpha 0.25-0.6
+    float pulse = (sinf(g_GlowTimer * 4.0f) + 1.0f) * 0.5f; 
+    XMFLOAT4 glowColor{ 1.0f, 0.9f, 0.2f, 0.25f + pulse * 0.35f }; 
 
     for (int i = 0; i < CropPlot_GetCount(); i++)
     {

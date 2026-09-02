@@ -92,6 +92,19 @@ static const char* GetItemName(ItemType item)
 	}
 }
 
+static ItemType GetCropForSeed(ItemType seed)
+{
+	switch (seed)
+	{
+	case ItemType_CarrotSeed:    return ItemType_Carrot;
+	case ItemType_WheatSeed:     return ItemType_Wheat;
+	case ItemType_LettuceSeed:   return ItemType_Lettuce;
+	case ItemType_CornSeed:      return ItemType_Corn;
+	case ItemType_BlueberrySeed: return ItemType_Blueberry;
+	default:                     return ItemType_None;
+	}
+}
+
 static int FindLevelPrice(ItemType item)
 {
 	if (item == ItemType_None) return 0;
@@ -278,13 +291,19 @@ void Shop_DrawMenu()
 		float nameY = iconY + (ICON_SIZE - nameSize.y) * 0.5f-3.0f;
 		Font_Print(GetItemName(item), nameX, nameY, NAME_SCALE);
 
-		// bottom row: price bottom-left, quantity bottom-right
+		// bottom row: price bottom-left, sell price bottom middle, quantity bottom-right
 		constexpr float BOTTOM_ROW_SCALE = 2.0f;
 		float bottomRowY = slotY + slotH - Font_MeasureText("0", BOTTOM_ROW_SCALE).y - 13.0f;
 
 		char priceStr[16];
-		snprintf(priceStr, sizeof(priceStr), "%dC", Shop_GetItemPrice(i));
+		snprintf(priceStr, sizeof(priceStr), "Buy:%dC", Shop_GetItemPrice(i));
 		Font_Print(priceStr, nameX, bottomRowY, BOTTOM_ROW_SCALE);
+		
+		char sellPriceStr[16];
+		SellBox_GetSellPrice(GetCropForSeed(item));
+		snprintf(sellPriceStr, sizeof(sellPriceStr), "Sell:%dC", SellBox_GetSellPrice(GetCropForSeed(item)));
+		DirectX::XMFLOAT2 sellPriceSize = Font_MeasureText(sellPriceStr, BOTTOM_ROW_SCALE);
+		Font_Print( sellPriceStr, nameX + sellPriceSize.x + 7.5f, bottomRowY, BOTTOM_ROW_SCALE);
 
 		char qtyStr[8];
 		snprintf(qtyStr, sizeof(qtyStr), "< %d >", g_PendingQty[i]);
@@ -293,7 +312,7 @@ void Shop_DrawMenu()
 	}
 
 	Font_Print("WASD Move   Arrows Qty   E Buy   ESC Close",
-		menuX + 33.0f, menuY + MENU_HEIGHT - 50.0f, 3.0f);
+		menuX + 40.0f, menuY + MENU_HEIGHT - 50.0f, 3.0f);
 }
 
 bool Shop_IsPlayerNear()

@@ -180,7 +180,7 @@ void Level_Initialize()
     g_AudioID_LevelStart = LoadAudio("assets/SFX/level_start.wav");
     g_PanelCapWidth = (float)Texture_GetWidth(g_PanelCapLeftID);
 
-    Level_Load(LevelTutorial);
+    Level_Load(Level1); // change here for testing different levels
 }
 
 void Level_Finalize()
@@ -331,7 +331,7 @@ static void DrawCountdownPanel()
     const LevelLayout& layout = g_Levels[g_CurrentLevel];
 
     char titleStr[16];
-    snprintf(titleStr, sizeof(titleStr), "LEVEL %d", g_CurrentLevel + 1);
+    snprintf(titleStr, sizeof(titleStr), "LEVEL %d", g_CurrentLevel);
 
     char goalStr[32];
     snprintf(goalStr, sizeof(goalStr), "GOAL: %d", layout.moneyQuota);
@@ -348,7 +348,7 @@ static void DrawCountdownPanel()
     const char* countdownStr = countdownLabels[phase];
 
     constexpr float TITLE_SCALE = 3.0f;
-    constexpr float INFO_SCALE = 2.2f;
+    constexpr float INFO_SCALE = 3.0f;
     constexpr float COUNTDOWN_SCALE = 5.0f;
 
     DirectX::XMFLOAT2 titleSize = Font_MeasureText(titleStr, TITLE_SCALE);
