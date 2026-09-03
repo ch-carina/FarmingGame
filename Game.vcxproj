@@ -200,7 +200,6 @@ xcopy "$(ProjectDir)assets" "$(OutDir)assets" /E /I /Y</Command>
     <ClCompile Include="level.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="menu.cpp" />
-    <ClCompile Include="mouse.cpp" />
     <ClCompile Include="results.cpp" />
     <ClCompile Include="scene.cpp" />
     <ClCompile Include="sellBox.cpp" />
@@ -251,7 +250,6 @@ xcopy "$(ProjectDir)assets" "$(OutDir)assets" /E /I /Y</Command>
     <ClInclude Include="keyboard.h" />
     <ClInclude Include="level.h" />
     <ClInclude Include="menu.h" />
-    <ClInclude Include="mouse.h" />
     <ClInclude Include="results.h" />
     <ClInclude Include="scene.h" />
     <ClInclude Include="sellBox.h" />
