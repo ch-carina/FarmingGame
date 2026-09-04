@@ -68,4 +68,5 @@ float Level_GetTimeRemaining();
 
 void Level_SetCheckpoint(); // call after money/inventory reach the state you want to fall back to
 
+void Level_RequestTutorialFromMenu(); // call from the main menu to start the tutorial
 #endif //LEVEL_H

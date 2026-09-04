@@ -77,6 +77,8 @@ void CropDraw();
 
 void Crop_Destroy(int index); 
 
+void Crop_ClearAll();
+
 void Crop_Water(int index);
 
 int Crop_GetRank(int index);
@@ -84,6 +86,5 @@ int Crop_GetRank(int index);
 void Crop_SetGrowthPaused(int index, bool paused);
 
 const Crop& CropGet(int index);
-
 
 #endif //CROP_H

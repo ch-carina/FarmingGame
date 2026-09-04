@@ -32,11 +32,11 @@ struct CropGrowthTiming
 
 static constexpr CropGrowthTiming g_CropGrowthTimings[CropType_MAX] =
 {
-    { 2.0f, 3.0f, 5.0f }, // CropType_Carrot
-    { 2.0f, 2.0f, 3.0f }, // CropType_Wheat
-    { 2.0f, 4.0f, 6.0f }, // CropType_Lettuce
-    { 2.0f, 3.0f, 6.0f }, // CropType_Corn
-    { 2.0f, 6.0f, 6.0f }, // CropType_Blueberry
+    { 3.0f, 4.0f, 4.0f }, // CropType_Carrot
+    { 3.0f, 3.0f, 4.0f }, // CropType_Wheat
+    { 3.0f, 5.0f, 5.0f }, // CropType_Lettuce
+    { 3.0f, 4.0f, 5.0f }, // CropType_Corn
+    { 3.0f, 7.0f, 7.0f }, // CropType_Blueberry
 };
 
 static constexpr float WATER_VFX_PLAY_DURATION = 0.6f; 
@@ -228,7 +228,7 @@ void CropDraw()
             int rCol = crop.rankFrame % rankAnim.columns;
             int rRow = crop.rankFrame / rankAnim.columns;
 
-            constexpr float BADGE_SIZE = 24.0f;
+            constexpr float BADGE_SIZE = 32.0f;
             DrawQueue_Push(rankAnim.textureID,
                 crop.x + CROP_DISPLAY_SIZE - BADGE_SIZE, crop.y,
                 BADGE_SIZE, BADGE_SIZE,
@@ -251,6 +251,15 @@ void Crop_Destroy(int index)
 		return;
 	}
 	g_Crops[index].isActive = false;
+}
+
+void Crop_ClearAll()
+{
+    for (int i = 0; i < CROP_MAX; i++)
+    {
+        g_Crops[i].isActive = false;
+    }
+    g_CropCount = 0;
 }
 
 void Crop_Water(int index)

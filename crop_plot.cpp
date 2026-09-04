@@ -17,6 +17,7 @@
 #include "collision.h"
 #include"game_player.h"
 #include "config.h"
+#include "draw_queue.h"
 #include <algorithm>
 #include <cmath>
 
@@ -103,16 +104,22 @@ void CropPlot_Draw()
 
         if (g_CropPlots[i].hasScarecrow)
         {
-            constexpr float SCARECROW_OFFSET = (PLOT_SIZE - CROP_DISPLAY_SIZE) * 0.5f;
-            Sprite_Draw(g_ScarecrowTextureID,
-                g_CropPlots[i].x + SCARECROW_OFFSET, g_CropPlots[i].y + SCARECROW_OFFSET,
-                CROP_DISPLAY_SIZE, CROP_DISPLAY_SIZE, 0, 0, 96, 96, 0.0f);
+			constexpr float SCARECROW_SIZE = CROP_DISPLAY_SIZE*1.3f; // size of the scarecrow sprite when drawn on screen
+            constexpr float SCARECROW_OFFSET = (PLOT_SIZE - SCARECROW_SIZE) * 0.5f;
+
+            float scarecrowX = g_CropPlots[i].x + SCARECROW_OFFSET;
+            float scarecrowY = g_CropPlots[i].y + SCARECROW_OFFSET;
+
+            DrawQueue_Push(g_ScarecrowTextureID,
+                scarecrowX, scarecrowY, CROP_DISPLAY_SIZE, CROP_DISPLAY_SIZE, 0, 0, 96, 96,
+                scarecrowY + CROP_DISPLAY_SIZE);
         }
     }
 }
 
 void CropPlot_LoadRegions(const PlotRegion regions[], int regionCount)
 {
+    Crop_ClearAll();
     g_PlotCount = 0;
 
     for (int r = 0; r < regionCount; r++)

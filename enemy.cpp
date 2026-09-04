@@ -38,8 +38,8 @@ static constexpr float ENEMY_MOVE_LIMIT_X{ SCREEN_WIDTH - ENEMY_WIDTH };
 static int g_patternCount = 0;
 
 static float g_EnemySpawnTimer = 0.0f;
-static constexpr float ENEMY_SPAWN_INTERVAL = 3.0f; //space between each enemy spawn by seconds
-static constexpr float ENEMY_SPAWN_COOLDOWN = 2.0f; //space between spawns 
+static constexpr float ENEMY_SPAWN_INTERVAL = 4.0f; //space between each enemy spawn by seconds
+static constexpr float ENEMY_SPAWN_COOLDOWN = 4.0f; //space between spawns 
 
 
 void EnemyInitialize()
@@ -187,7 +187,7 @@ void Enemy_Cleanup()
 
 CollisionCircle Enemy_GetCollisionCircle(int index)
 {
-	if (g_Enemies[index].state == EnemyState_Burrowing)
+	if (g_Enemies[index].animState == EnemyAnim_Burrow)
 	{
 		return { {0.0f, 0.0f}, 0.0f }; // still a dirt mound — no bullet collision yet
 	}

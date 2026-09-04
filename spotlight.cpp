@@ -20,7 +20,7 @@ static ID3D11DepthStencilState* g_pDepthStencilState = nullptr;
 
 static constexpr float INNER_RADIUS = 90.0f;
 static constexpr float OUTER_RADIUS = 250.0f;
-static constexpr float DARK_ALPHA = 0.85f;
+static constexpr float DARK_ALPHA = 0.65f;
 static constexpr float SPOTLIGHT_START_PROGRESS = 0.5f;
 static constexpr float SPOTLIGHT_FADE_START = 0.4f; // level2 progress where it starts fading in
 static constexpr float SPOTLIGHT_FADE_END = 0.7f;   // level2 progress where it reaches full strength

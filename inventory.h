@@ -23,12 +23,16 @@ enum ItemType
     ItemType_WaterPail,
     ItemType_WheatSeed, 
     ItemType_Wheat,
+	ItemType_WheatGold,
     ItemType_LettuceSeed, 
     ItemType_Lettuce,
+	ItemType_LettuceGold,
     ItemType_CornSeed, 
     ItemType_Corn,
+	ItemType_CornGold,
     ItemType_BlueberrySeed, 
     ItemType_Blueberry,
+	ItemType_BlueberryGold,
     ItemType_Scarecrow,
     ItemType_MAX
 };

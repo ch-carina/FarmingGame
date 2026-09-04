@@ -24,10 +24,14 @@
 #include "water.h"
 #include "Audio.h"
 #include "tutorial.h"
+#include "scene.h"
+#include "fade.h"
 #include <cstdio>
 
 static LevelType g_CurrentLevel = Level1;
 static float g_TimeRemaining = 0.0f;
+static bool g_TutorialFromMenu = false;
+static bool g_TutorialExitPending = false;
 
 static LevelResult g_Result = LevelResult_None;
 static bool g_ShowResult = false;
@@ -50,6 +54,7 @@ static constexpr float COUNTDOWN_PANEL_WIDTH = 420.0f;
 static constexpr float COUNTDOWN_PANEL_HEIGHT = 260.0f;
 static int g_AudioID_LevelStart = -1;
 static bool g_GoSoundPlayed = false;
+
 
 //---------------- 
 //Tutorial plots  
@@ -180,7 +185,7 @@ void Level_Initialize()
     g_AudioID_LevelStart = LoadAudio("assets/SFX/level_start.wav");
     g_PanelCapWidth = (float)Texture_GetWidth(g_PanelCapLeftID);
 
-    Level_Load(Level1); // change here for testing different levels
+    Level_Load(LevelTutorial); // change here for testing different levels
 }
 
 void Level_Finalize()
@@ -223,9 +228,28 @@ void Level_Update(float delta_time)
 {
     if (g_CurrentLevel == LevelTutorial)
     {
+
+        if (g_TutorialExitPending)
+        {
+            if (Fade_IsFinished())
+            {
+                g_TutorialExitPending = false;
+                g_TutorialFromMenu = false;
+                Scene_SetNextScene(kTitle);
+            }
+            return;
+        }
+
         Tutorial_Update(delta_time);
         if (Tutorial_IsComplete())
         {
+            if (g_TutorialFromMenu)
+            {
+                Fade_Start(FadeType::kOut, 1.0f, { 0.0f,0.0f,0.0f,0.0f });
+                g_TutorialExitPending = true;
+                return;
+            }
+
             SellBox_SetMoney(g_CheckpointMoney);
             Inventory_SetSnapshot(g_CheckpointInventory);
             Level_Load(Level1);
@@ -233,8 +257,11 @@ void Level_Update(float delta_time)
         }
         return;
     }
+
     if (g_ShowCountdown)
     {
+        if (!Fade_IsFinished()) return; // don't burn down the countdown while the loading screen still covers it
+
         g_CountdownTimer -= delta_time;
 
         if (!g_GoSoundPlayed && g_CountdownTimer <= COUNTDOWN_DURATION / 4.0f)
@@ -430,4 +457,9 @@ void Level_SetCheckpoint()
 {
     g_CheckpointMoney = SellBox_GetMoney();
     g_CheckpointInventory = Inventory_GetSnapshot();
+}
+
+void Level_RequestTutorialFromMenu()
+{
+	g_TutorialFromMenu = true;
 }

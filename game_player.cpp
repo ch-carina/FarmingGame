@@ -48,6 +48,12 @@ static constexpr float KNOCKBACK_DURATION = 0.25f;
 static XMFLOAT2 g_KnockbackVelocity{ 0.0f, 0.0f };
 static float g_KnockbackTimer = 0.0f;
 
+static int g_FillBarFrameTextureID = TEXTURE_INVALID_ID;
+static int g_FillBarFillTextureID = TEXTURE_INVALID_ID;
+static constexpr float FILL_BAR_WIDTH = 64.0f;
+static constexpr float FILL_BAR_HEIGHT = 18.0f;
+static constexpr float FILL_BAR_INSET = 4.0f; // how far the fill sits inside the frame's border
+
 static XMFLOAT2 FacingToDirection(PlayerFacing facing)
 {
 	switch (facing)
@@ -130,6 +136,21 @@ bool GamePlayer_TakeDamage()
 
 void GamePlayer_DrawPopup()
 {
+	if (PlayerInteraction_IsFilling())
+	{
+		float barX = g_Position.x + (PLAYER_WIDTH - FILL_BAR_WIDTH) * 0.5f;
+		float barY = g_Position.y - FILL_BAR_HEIGHT - 10.0f;
+
+		Sprite_Draw(g_FillBarFrameTextureID, barX, barY, FILL_BAR_WIDTH, FILL_BAR_HEIGHT);
+
+		float fillWidth = (FILL_BAR_WIDTH - FILL_BAR_INSET * 2.0f) * PlayerInteraction_GetFillProgress();
+		if (fillWidth > 0.0f)
+		{
+			Sprite_Draw(g_FillBarFillTextureID,
+				barX + FILL_BAR_INSET, barY + FILL_BAR_INSET,
+				fillWidth, FILL_BAR_HEIGHT - FILL_BAR_INSET * 2.0f);
+		}
+	}
 	if (PlayerInteraction_IsHarvesting())
 	{
 		constexpr float POPUP_SIZE = 48.0f;
@@ -145,6 +166,8 @@ void GamePlayer_Initialize(float start_x, float start_y)
 {
 	PlayerAnimation_Initialize();
 	g_ShadowTextureID = Texture_Load(L"assets/MC/Shadow.PNG", true);
+	g_FillBarFrameTextureID = Texture_Load(L"assets/UI/FillBar_L.PNG", true);
+	g_FillBarFillTextureID = Texture_Load(L"assets/UI/Fill.PNG", true);
 
 	g_Position.x = start_x;
 	g_Position.y = start_y;
@@ -165,6 +188,8 @@ void GamePlayer_Finalize()
 {
 	PlayerAnimation_Finalize();
 	Texture_Release(g_ShadowTextureID);
+	Texture_Release(g_FillBarFrameTextureID);
+	Texture_Release(g_FillBarFillTextureID);
 }
 
 //Changing Player Animation State 

@@ -10,4 +10,7 @@ void PlayerInteraction_HandleUse(float delta_time);
 bool PlayerInteraction_IsHarvesting();
 ItemType PlayerInteraction_GetHarvestPopupItem();
 
+bool PlayerInteraction_IsFilling();
+float PlayerInteraction_GetFillProgress();
+
 #endif

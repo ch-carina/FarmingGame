@@ -34,8 +34,8 @@ static constexpr int g_CropHarvestYield[CropType_MAX] = {
 	1, // CropType_Carrot
 	1, // CropType_Wheat
 	1, // CropType_Lettuce
-	2, // CropType_Corn
-	4, // CropType_Blueberry
+	3, // CropType_Corn
+	5, // CropType_Blueberry
 };
 
 static bool CropForSeed(ItemType item, CropType& outType)
@@ -53,13 +53,13 @@ static bool CropForSeed(ItemType item, CropType& outType)
 
 //player planting times 
 static float plantingTimer = 0.0f;
-static constexpr float PLANT_TIME = 2.0f; //time it takes to plant a crop
+static constexpr float PLANT_TIME = 0.75f; //time it takes to plant a crop
 static int currentPlotIndex = -1; //index of the current plot being planted
 static float wateringTimer = 0.0f;
-static constexpr float WATER_TIME = 1.0f;
+static constexpr float WATER_TIME = 0.75f;
 
 //Harvesting information 
-static constexpr float HARVEST_DISPLAY_TIME = 1.0f;
+static constexpr float HARVEST_DISPLAY_TIME = 0.75f;
 static bool isHarvesting = false;
 static float harvestTimer = 0.0f;
 static CropRank pendingHarvestRank = CropRank_Normal;
@@ -216,4 +216,18 @@ ItemType PlayerInteraction_GetHarvestPopupItem()
 	return (pendingHarvestRank == CropRank_Watered)
 		? g_CropHarvestItemGold[pendingHarvestType]
 		: g_CropHarvestItem[pendingHarvestType];
+}
+
+bool PlayerInteraction_IsFilling()
+{
+	if (!InputKeyboard_IsPress(KK_E)) return false; // hide immediately if released early
+
+	return wateringTimer > 0.0f || plantingTimer > 0.0f;
+}
+
+float PlayerInteraction_GetFillProgress()
+{
+	if (wateringTimer > 0.0f) return wateringTimer / WATER_TIME;
+	if (plantingTimer > 0.0f) return plantingTimer / PLANT_TIME;
+	return 0.0f;
 }

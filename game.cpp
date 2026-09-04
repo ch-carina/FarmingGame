@@ -137,9 +137,9 @@ static void DrawWorld()
 {
 	Ground_Draw();
 	Water_Draw();
-	CropPlot_Draw();
 
 	DrawQueue_Clear();
+	CropPlot_Draw();
 	CropDraw();
 	Shop_Draw();
 	GamePlayer_Draw();

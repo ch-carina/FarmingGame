@@ -38,13 +38,21 @@ static int GetSellPrice(ItemType item)
 	case ItemType_CarrotGold: 
 		return 45;
 	case ItemType_Wheat:
-		return 20;      
+		return 20;  
+	case ItemType_WheatGold:
+		return 25;
 	case ItemType_Lettuce:
 		return 30;
+	case ItemType_LettuceGold:
+		return 35;
 	case ItemType_Corn:
-		return 20;
+		return 30;
+	case ItemType_CornGold:
+		return 35;
 	case ItemType_Blueberry:
 		return 35;
+	case ItemType_BlueberryGold:
+		return 40;
 	default:
 		return 0;
 	}
@@ -150,6 +158,8 @@ bool SellBox_SpendMoney(int amount)
 void SellBox_SetMoney(int amount)
 {
 	g_Money = amount;
+	g_ShowCoinPopup = false;
+	g_PendingCoinAmount = 0;
 }
 
 void SellBox_DrawPopup()

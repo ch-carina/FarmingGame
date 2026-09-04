@@ -20,7 +20,6 @@
 #include "debug_text.h"
 #include "system_timer.h"
 #include "keyboard.h"
-#include "mouse.h"
 
 
 //WindowèÓïÒ
@@ -190,7 +189,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 	
 	case WM_ACTIVATEAPP:
 		Keyboard_ProcessMessage(message, wParam, lParam);
-		Mouse_ProcessMessage(message, wParam, lParam);
 		break; 
 	
 	case WM_KEYDOWN:
@@ -213,9 +211,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) 
 	case WM_XBUTTONDOWN:
 	case WM_XBUTTONUP:
 	case WM_MOUSEHOVER:
-		Mouse_ProcessMessage(message, wParam, lParam);
-		break;
-	
 	default:
 		return DefWindowProc(hWnd, message, wParam, lParam);
 	}

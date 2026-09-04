@@ -25,6 +25,7 @@
 #include <cmath>
 
 static int g_shopInGameTextureID = TEXTURE_INVALID_ID;
+static int g_PanelBackingTextureID = TEXTURE_INVALID_ID;
 static constexpr float SHOP_WIDTH = 256.0f;
 static constexpr float SHOP_HEIGHT = 256.0f;
 static constexpr float SHOP_MARGIN = 20.0f;
@@ -164,6 +165,7 @@ void Shop_Initialize()
 	g_SlotCapWidth = (float)Texture_GetWidth(g_SlotCapLeftID);
 
 	g_CoinTextureID = Texture_Load(L"assets/UI/coin.PNG", false);
+	g_PanelBackingTextureID = Texture_Load(L"assets/white.png", false);
 
 	g_ShopCollision =
 	{
@@ -259,6 +261,9 @@ void Shop_DrawMenu()
 
 	float menuX = (SCREEN_WIDTH - MENU_WIDTH) * 0.5f;
 	float menuY = (SCREEN_HEIGHT - MENU_HEIGHT) * 0.5f;
+
+	constexpr DirectX::XMFLOAT4 PANEL_BACKING_COLOR = { 0.10f, 0.07f, 0.05f, 1.0f };
+	Sprite_Draw(g_PanelBackingTextureID, menuX, menuY, MENU_WIDTH, MENU_HEIGHT, PANEL_BACKING_COLOR);
 
 	Draw3Slice(g_PanelCapLeftID, g_PanelCapMidID, g_PanelCapRightID, g_PanelCapWidth,
 		menuX, menuY, MENU_WIDTH, MENU_HEIGHT);

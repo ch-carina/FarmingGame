@@ -83,13 +83,62 @@ void CropAnimation_Initialize()
 
     g_CropAnimations[CropType_Corn][CropGrowth_Teen] =
     {
-       Texture_Load(L"assets/Crops/Corn/Corn_Teen.png",false), 96,96,0,12,0.20f,4
+       Texture_Load(L"assets/Crops/Corn/Corn_Teen.png",false), 96,96,0,8,0.20f,4
     };
 
     g_CropAnimations[CropType_Corn][CropGrowth_Ready] =
     {
-       Texture_Load(L"assets/Crops/Corn/Corn_Ready.png",false),96,96,0,12,0.20f,4
+       Texture_Load(L"assets/Crops/Corn/Corn_Ready.png",false),96,96,0,8,0.20f,4
     };
+
+    //----------------------------------
+    // Lettuce
+    //----------------------------------
+
+    g_CropAnimations[CropType_Lettuce][CropGrowth_Planted] =
+    {
+        Texture_Load(L"assets/Crops/Lettuce/Lettuce_Planted.PNG",false),96,96,0,1,0.20f,1
+    };
+
+    g_CropAnimations[CropType_Lettuce][CropGrowth_Sprouted] =
+    {
+        Texture_Load(L"assets/Crops/Lettuce/Lettuce_Sprout.PNG",false), 96,96,0,12,0.20f,4
+    };
+
+    g_CropAnimations[CropType_Lettuce][CropGrowth_Teen] =
+    {
+       Texture_Load(L"assets/Crops/Lettuce/Lettuce_Teen.PNG",false), 96,96,0,8,0.20f,4
+    };
+
+    g_CropAnimations[CropType_Lettuce][CropGrowth_Ready] =
+    {
+       Texture_Load(L"assets/Crops/Lettuce/Lettuce_Ready.PNG",false),96,96,0,8,0.20f,4
+    };
+
+    //----------------------------------
+    // Blueberry
+    //----------------------------------
+
+    g_CropAnimations[CropType_Blueberry][CropGrowth_Planted] =
+    {
+        Texture_Load(L"assets/Crops/Blueberry/Blueberry_Planted.PNG",false),96,96,0,1,0.20f,1
+    };
+
+    g_CropAnimations[CropType_Blueberry][CropGrowth_Sprouted] =
+    {
+        Texture_Load(L"assets/Crops/Blueberry/Blueberry_Sprout.PNG",false), 96,96,0,12,0.20f,4
+    };
+
+    g_CropAnimations[CropType_Blueberry][CropGrowth_Teen] =
+    {
+       Texture_Load(L"assets/Crops/Blueberry/Blueberry_Teen.PNG",false), 96,96,0,8,0.20f,4
+    };
+
+    g_CropAnimations[CropType_Blueberry][CropGrowth_Ready] =
+    {
+       Texture_Load(L"assets/Crops/Blueberry/Blueberry_Ready.PNG",false),96,96,0,8,0.20f,4
+    };
+
     //----------------------------------
     // CROP RANK
     //----------------------------------
