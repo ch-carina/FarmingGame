@@ -19,6 +19,7 @@
 #include "level.h"
 #include "water.h"
 #include "draw_queue.h"
+#include "fence.h"
 
 #include <DirectXMath.h>
 using namespace DirectX;
@@ -341,16 +342,21 @@ void GamePlayer_Update(float delta_time)
 		constexpr float feetRadius = PLAYER_WIDTH * 0.5f;
 		float feetOffsetY = PLAYER_HEIGHT - PLAYER_WIDTH * 0.5f;
 
+		CollisionCircle currentFeet{ { g_Position.x + feetRadius, g_Position.y + feetOffsetY }, feetRadius };
+		int stuckInFence = Fence_GetBlockingSlot(currentFeet); // already overlapping this one -- let them walk out of it
+
 		float candidateX = g_Position.x + moveDelta.x;
 		CollisionCircle feetAtX{ { candidateX + feetRadius, g_Position.y + feetOffsetY }, feetRadius };
-		if (!Water_IsBlocked(feetAtX) && !Shop_IsBlocking(feetAtX) && !SellBox_IsBlocking(feetAtX))
+		if (!Water_IsBlocked(feetAtX) && !Shop_IsBlocking(feetAtX) && !SellBox_IsBlocking(feetAtX) &&
+			Fence_GetBlockingSlot(feetAtX, stuckInFence) == -1)
 		{
 			g_Position.x = candidateX;
 		}
 
 		float candidateY = g_Position.y + moveDelta.y;
 		CollisionCircle feetAtY{ { g_Position.x + feetRadius, candidateY + feetOffsetY }, feetRadius };
-		if (!Water_IsBlocked(feetAtY) && !Shop_IsBlocking(feetAtY) && !SellBox_IsBlocking(feetAtY))
+		if (!Water_IsBlocked(feetAtY) && !Shop_IsBlocking(feetAtY) && !SellBox_IsBlocking(feetAtY) &&
+			Fence_GetBlockingSlot(feetAtY, stuckInFence) == -1)
 		{
 			g_Position.y = candidateY;
 		}

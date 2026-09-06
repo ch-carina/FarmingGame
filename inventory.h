@@ -34,6 +34,7 @@ enum ItemType
     ItemType_Blueberry,
 	ItemType_BlueberryGold,
     ItemType_Scarecrow,
+    ItemType_Fence,
     ItemType_MAX
 };
 

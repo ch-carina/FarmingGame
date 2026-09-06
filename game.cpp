@@ -24,6 +24,7 @@
 #include "hue_change.h"
 #include "spotlight.h"
 #include "draw_queue.h"
+#include "fence.h"
 
 #ifdef _DEBUG
 #include "collision_debug.h"
@@ -42,6 +43,7 @@ void Game_Initialize()
 	constexpr float player_start_y = (SCREEN_HEIGHT - 128)*0.5f;
 	Ground_Initialize();
 	CropPlot_Initialize();
+	Fence_Initialize();
 	Shop_Initialize();
 	Water_Initialize();
 	Level_Initialize();
@@ -77,6 +79,7 @@ void Game_Finalize()
 	GamePlayer_Finalize();
 	Ground_Finalize();
 	CropFinalize();
+	Fence_Finalize();
 	Water_Finalize();
 	Cloud_Finalize();
 	Shop_Finalize();
@@ -140,6 +143,7 @@ static void DrawWorld()
 
 	DrawQueue_Clear();
 	CropPlot_Draw();
+	Fence_Draw();
 	CropDraw();
 	Shop_Draw();
 	GamePlayer_Draw();

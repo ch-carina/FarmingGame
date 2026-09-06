@@ -5,6 +5,7 @@
 #include "sellBox.h"
 #include "input_keyboard.h"
 #include "upgrade.h"
+#include "fence.h"
 
 static constexpr ItemType g_CropHarvestItem[CropType_MAX] = {
 	ItemType_Carrot,    // CropType_Carrot
@@ -65,6 +66,9 @@ static float harvestTimer = 0.0f;
 static CropRank pendingHarvestRank = CropRank_Normal;
 static CropType pendingHarvestType = CropType_Carrot;
 
+static float fenceTimer = 0.0f;
+static int currentFenceSlotIndex = -1;
+
 void PlayerInteraction_UpdateHarvestTimer(float delta_time)
 {
 	if (!isHarvesting) return;
@@ -112,6 +116,37 @@ void PlayerInteraction_HandleUse(float delta_time)
 	else
 	{
 		int overlappingPlot = CropPlot_GetPlayerPlot();
+		int overlappingFenceSlot = Fence_GetPlayerSlot();
+		bool wantsFence = overlappingPlot == -1 && overlappingFenceSlot != -1 &&
+			!Fence_IsBuilt(overlappingFenceSlot) &&
+			Inventory_GetSlotItem(Inventory_GetSelectedSlot()) == ItemType_Fence;
+
+		if (wantsFence)
+		{
+			if (currentFenceSlotIndex != overlappingFenceSlot)
+			{
+				fenceTimer = 0.0f;
+				currentFenceSlotIndex = overlappingFenceSlot;
+			}
+
+			Player_ChangeState(Planting);
+			fenceTimer += delta_time;
+
+			if (fenceTimer >= PLANT_TIME)
+			{
+				if (Inventory_RemoveItem(ItemType_Fence, 1))
+				{
+					Fence_Build(currentFenceSlotIndex);
+				}
+				fenceTimer = 0.0f;
+				currentFenceSlotIndex = -1;
+				Player_ChangeState(Idle);
+			}
+			return;
+		}
+		currentFenceSlotIndex = -1;
+		fenceTimer = 0.0f;
+
 
 		if (currentPlotIndex == -1)
 		{
@@ -222,12 +257,13 @@ bool PlayerInteraction_IsFilling()
 {
 	if (!InputKeyboard_IsPress(KK_E)) return false; // hide immediately if released early
 
-	return wateringTimer > 0.0f || plantingTimer > 0.0f;
+	return wateringTimer > 0.0f || plantingTimer > 0.0f || fenceTimer > 0.0f;
 }
 
 float PlayerInteraction_GetFillProgress()
 {
 	if (wateringTimer > 0.0f) return wateringTimer / WATER_TIME;
 	if (plantingTimer > 0.0f) return plantingTimer / PLANT_TIME;
+	if (fenceTimer > 0.0f) return fenceTimer / PLANT_TIME;
 	return 0.0f;
 }

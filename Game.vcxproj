@@ -184,6 +184,7 @@ xcopy "$(ProjectDir)assets" "$(OutDir)assets" /E /I /Y</Command>
     <ClCompile Include="enemy_animation.cpp" />
     <ClCompile Include="explosion.cpp" />
     <ClCompile Include="fade.cpp" />
+    <ClCompile Include="fence.cpp" />
     <ClCompile Include="flipbook_animation.cpp" />
     <ClCompile Include="font.cpp" />
     <ClCompile Include="game.cpp" />
@@ -235,6 +236,7 @@ xcopy "$(ProjectDir)assets" "$(OutDir)assets" /E /I /Y</Command>
     <ClInclude Include="enemy_animation.h" />
     <ClInclude Include="explosion.h" />
     <ClInclude Include="fade.h" />
+    <ClInclude Include="fence.h" />
     <ClInclude Include="flipbook_animation.h" />
     <ClInclude Include="font.h" />
     <ClInclude Include="game.h" />

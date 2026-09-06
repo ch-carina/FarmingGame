@@ -45,7 +45,7 @@ static constexpr ItemType g_ShopSlotItems[SHOP_SLOT_COUNT] =
 	ItemType_CornSeed,
 	ItemType_BlueberrySeed,
 	ItemType_Scarecrow,
-	ItemType_None,
+	ItemType_Fence,
 	ItemType_None, // reserved for a future item
 };
 
@@ -98,6 +98,7 @@ static const char* GetItemName(ItemType item)
 	case ItemType_CornSeed:      return "Corn Seeds";
 	case ItemType_BlueberrySeed: return "Blueberry Seeds";
 	case ItemType_Scarecrow:    return "Scarecrow";
+	case ItemType_Fence:        return "Fence";
 	default:                     return "???";
 	}
 }

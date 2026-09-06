@@ -26,6 +26,7 @@
 #include "explosion.h"
 #include "water.h"
 #include "draw_queue.h"
+#include "fence.h"
 
 static constexpr int ENEMY_MAX{ 128 };
 static Enemy g_Enemies[ENEMY_MAX]{ };
@@ -265,11 +266,26 @@ void EnemyUpdate(float delta_time)
 			float aimY = (toTargetLen > 0.0001f) ? toTargetY / toTargetLen : e.dirY;
 
 			constexpr float PROBE_DISTANCE = 40.0f;
-			constexpr float PROBE_RADIUS = 24.0f;
+			constexpr float PROBE_RADIUS = 24.0f;\
+
 			DirectX::XMFLOAT2 moveDir = SteerAroundWater(e.x, e.y, aimX, aimY, PROBE_DISTANCE, PROBE_RADIUS);
 
-			e.x += moveDir.x * e.speed * delta_time;
-			e.y += moveDir.y * e.speed * delta_time;
+			float nextX = e.x + moveDir.x * e.speed * delta_time;
+			float nextY = e.y + moveDir.y * e.speed * delta_time;
+
+			int blockingFence = Fence_GetBlockingSlot({ { nextX, nextY }, PROBE_RADIUS });
+			if (blockingFence != -1)
+			{
+				Fence_RegisterHit(blockingFence);
+				e.state = EnemyState_Return;
+				e.animState = EnemyAnim_Escape;
+				e.currentFrame = 0;
+				e.animTimer = 0.0f;
+				break;
+			}
+
+			e.x = nextX;
+			e.y = nextY;
 
 			float dx = e.targetX - e.x;
 			float dy = e.targetY - e.y;

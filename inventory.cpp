@@ -85,7 +85,7 @@ void Inventory_Initialize()
 	g_ItemIconTextureID[ItemType_WheatSeed] = Texture_Load(L"assets/UI/Wheat_Seeds.PNG", false); 
 	g_ItemIconTextureID[ItemType_Wheat] = Texture_Load(L"assets/Crops/Wheat/Wheat_Crop.PNG", false);
 	g_ItemIconTextureID[ItemType_LettuceSeed] = Texture_Load(L"assets/UI/Lettuce_Seeds.PNG", false);
-	g_ItemIconTextureID[ItemType_Lettuce] = Texture_Load(L"assets/Crops/Wheat/Wheat_Crop.PNG", false); // need to update with right image
+	g_ItemIconTextureID[ItemType_Lettuce] = Texture_Load(L"assets/Crops/Lettuce/Lettuce_Crop.PNG", false);
 	g_ItemIconTextureID[ItemType_CornSeed] = Texture_Load(L"assets/UI/Corn_Seeds.PNG", false);
 	g_ItemIconTextureID[ItemType_Corn] = Texture_Load(L"assets/Crops/Corn/Corn.PNG", false);
 	g_ItemIconTextureID[ItemType_BlueberrySeed] = Texture_Load(L"assets/UI/Blueberry_Seeds.PNG", false);
@@ -93,6 +93,7 @@ void Inventory_Initialize()
 	g_ItemIconTextureID[ItemType_CarrotGold] = Texture_Load(L"assets/Crops/Carrot/Carrot_Crop.PNG", false);
 	g_ItemIconTextureID[ItemType_Blueberry] = Texture_Load(L"assets/Crops/Blueberry.PNG", false);
 	g_ItemIconTextureID[ItemType_Scarecrow] = Texture_Load(L"assets/Crops/Scarecrow.PNG", false);
+	g_ItemIconTextureID[ItemType_Fence] = Texture_Load(L"assets/UI/Fence_M.PNG", false);
 
 	g_AudioID_InsertItem = LoadAudio("assets/SFX/inventory_enter.wav");
 }

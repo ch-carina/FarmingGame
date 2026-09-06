@@ -25,6 +25,7 @@
 #include "Audio.h"
 #include "tutorial.h"
 #include "scene.h"
+#include "fence.h"
 #include "fade.h"
 #include <cstdio>
 
@@ -125,8 +126,8 @@ static constexpr PlotRegion g_Level3Regions[] =
 {
     { 1, 1, 2, 2 },
     { 4, 1, 2, 2 },
-    { 7, 1, 2, 2 },
-    { 4, 4, 3, 3 },
+    { 6, 4, 2, 2 },
+    { 9, 1, 3, 3 },
 };
 
 static constexpr PlotRegion g_Level3WaterRegions[] =
@@ -142,6 +143,7 @@ static constexpr ShopItem g_Level3ShopItems[] =
     { ItemType_CornSeed, 30 },
     { ItemType_BlueberrySeed, 35 },
     { ItemType_Scarecrow, 30 },
+	{ ItemType_Fence, 5 }, 
 };
 
 //Controls level information 
@@ -157,7 +159,7 @@ static constexpr LevelLayout g_Levels[Level_MAX] =
     { g_TutorialRegions, 1, 9999.0f, g_TutorialShopItems, 1, 0, nullptr, 0 },
     { g_Level1Regions, 3 , 90.0f,  g_Level1ShopItems, 2, 200, g_Level1WaterRegions, 2 },
     { g_Level2Regions, 4 , 120.0f,  g_Level2ShopItems, 5, 400, g_Level2WaterRegions, 1 },
-    { g_Level3Regions, 4 , 180.0f, g_Level3ShopItems, 6, 600, g_Level3WaterRegions, 1 },
+    { g_Level3Regions, 4 , 180.0f, g_Level3ShopItems, 8, 600, g_Level3WaterRegions, 1 },
 };
 
 static void Draw3Slice(int leftID, int midID, int rightID, float capWidth, float x, float y, float width, float height)
@@ -185,7 +187,7 @@ void Level_Initialize()
     g_AudioID_LevelStart = LoadAudio("assets/SFX/level_start.wav");
     g_PanelCapWidth = (float)Texture_GetWidth(g_PanelCapLeftID);
 
-    Level_Load(LevelTutorial); // change here for testing different levels
+    Level_Load(Level3); // change here for testing different levels
 }
 
 void Level_Finalize()
@@ -206,6 +208,7 @@ void Level_Load(LevelType level)
     CropPlot_LoadRegions(layout.regions, layout.regionCount);
     Ground_LoadLayout(layout.regions, layout.regionCount);
     Water_LoadRegions(layout.waterRegions, layout.waterRegionCount);
+    Fence_LoadRegions(layout.regions, layout.regionCount);
     g_TimeRemaining = layout.timeLimit;
 
     g_Result = LevelResult_None;
