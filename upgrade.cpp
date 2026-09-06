@@ -14,11 +14,13 @@
 #include "font.h"
 #include "input_keyboard.h"
 #include "config.h"
+#include "game_player_interaction.h"
 
 enum UpgradeType
 {
     UpgradeType_MoveSpeed,
     UpgradeType_WaterArea,
+    UpgradeType_InteractionSpeed,
     UpgradeType_MAX
 };
 
@@ -32,16 +34,19 @@ struct UpgradeChoiceSet
 static constexpr UpgradeChoiceSet g_ChoiceSets[] =
 {
     { Level1, { UpgradeType_MoveSpeed, UpgradeType_WaterArea } },
+    { Level2, { UpgradeType_MoveSpeed, UpgradeType_InteractionSpeed } },
 };
 static constexpr int g_ChoiceSetCount = sizeof(g_ChoiceSets) / sizeof(g_ChoiceSets[0]);
 
 static constexpr float SPEED_BOOST_AMOUNT = 120.0f;
+static constexpr int MAX_UPGRADE_OPTIONS = 3;
 
 static int g_SpeedIconTextureID = TEXTURE_INVALID_ID;
 
 static bool g_ChoiceActive = false;
 static int g_SelectedOption = 0;
-static UpgradeType g_CurrentOptions[2] = { UpgradeType_MoveSpeed, UpgradeType_WaterArea };
+static UpgradeType g_CurrentOptions[MAX_UPGRADE_OPTIONS];
+static int g_CurrentOptionCount = 0;
 
 static bool g_WaterAreaUnlocked = false;
 
@@ -56,6 +61,7 @@ static const char* GetUpgradeName(UpgradeType type)
     {
     case UpgradeType_MoveSpeed: return "Faster Movement";
     case UpgradeType_WaterArea: return "Wide Watering Pail";
+    case UpgradeType_InteractionSpeed: return "Quick Hands";
     default: return "???";
     }
 }
@@ -66,6 +72,7 @@ static const char* GetUpgradeDescription(UpgradeType type)
     {
     case UpgradeType_MoveSpeed: return "Move around\nthe farm faster.";
     case UpgradeType_WaterArea: return "Water a 2x2 area\ninstead of 1 crop.";
+    case UpgradeType_InteractionSpeed: return "Plant, water, build \nand harvest faster.";
     default: return "";
     }
 }
@@ -76,6 +83,7 @@ static int GetUpgradeIconTexture(UpgradeType type)
     {
     case UpgradeType_MoveSpeed: return g_SpeedIconTextureID;
     case UpgradeType_WaterArea: return Inventory_GetIconTexture(ItemType_WaterPail);
+    case UpgradeType_InteractionSpeed: return g_SpeedIconTextureID;
     default: return TEXTURE_INVALID_ID;
     }
 }
@@ -89,6 +97,10 @@ static void ApplyUpgrade(UpgradeType type)
         break;
     case UpgradeType_WaterArea:
         g_WaterAreaUnlocked = true;
+        break;
+    
+    case UpgradeType_InteractionSpeed:
+        PlayerInteraction_ApplyInteractionSpeedBoost();
         break;
     }
 }
@@ -104,6 +116,7 @@ void Upgrade_Initialize()
 
     g_ChoiceActive = false;
     g_SelectedOption = 0;
+    g_WaterAreaUnlocked = false;
 }
 
 void Upgrade_Finalize()
@@ -116,18 +129,29 @@ void Upgrade_Finalize()
 
 bool Upgrade_TryBeginChoice(LevelType clearedLevel)
 {
-    for (int i = 0; i < g_ChoiceSetCount; i++)
+    g_CurrentOptionCount = 0;
+
+    if (clearedLevel == 1)
     {
-        if (g_ChoiceSets[i].afterLevel == clearedLevel)
+		g_CurrentOptions[g_CurrentOptionCount++] = UpgradeType_MoveSpeed;
+		g_CurrentOptions[g_CurrentOptionCount++] = UpgradeType_WaterArea;
+
+	}
+    else if (clearedLevel == 2)
+    {
+        g_CurrentOptions[g_CurrentOptionCount++] = UpgradeType_MoveSpeed;
+        g_CurrentOptions[g_CurrentOptionCount++] = UpgradeType_InteractionSpeed;
+        if (!g_WaterAreaUnlocked)
         {
-            g_CurrentOptions[0] = g_ChoiceSets[i].options[0];
-            g_CurrentOptions[1] = g_ChoiceSets[i].options[1];
-            g_SelectedOption = 0;
-            g_ChoiceActive = true;
-            return true;
+            g_CurrentOptions[g_CurrentOptionCount++] = UpgradeType_WaterArea;
         }
     }
-    return false;
+
+	if (g_CurrentOptionCount == 0) return false;
+
+	g_SelectedOption = 0;
+	g_ChoiceActive = true;
+    return true; 
 }
 
 bool Upgrade_IsChoiceActive()
@@ -139,8 +163,8 @@ void Upgrade_Update(float delta_time)
 {
     if (!g_ChoiceActive) return;
 
-    if (InputKeyboard_IsTrigger(KK_LEFT))  g_SelectedOption = 0;
-    if (InputKeyboard_IsTrigger(KK_RIGHT)) g_SelectedOption = 1;
+    if (InputKeyboard_IsTrigger(KK_LEFT) || InputKeyboard_IsTrigger(KK_A))  g_SelectedOption = (g_SelectedOption - 1 + g_CurrentOptionCount) % g_CurrentOptionCount;
+    if (InputKeyboard_IsTrigger(KK_RIGHT) || InputKeyboard_IsTrigger(KK_D)) g_SelectedOption = (g_SelectedOption + 1) % g_CurrentOptionCount;
 
     if (InputKeyboard_IsTrigger(KK_ENTER))
     {
@@ -174,13 +198,13 @@ void Upgrade_Draw()
     constexpr float TITLE_SCALE = 3.5f;
     DirectX::XMFLOAT2 titleSize = Font_MeasureText(title, TITLE_SCALE);
 
-    float blockWidth = CARD_WIDTH * 2.0f + CARD_GAP;
+    float blockWidth = g_CurrentOptionCount * CARD_WIDTH + (g_CurrentOptionCount - 1) * CARD_GAP;
     float blockLeft = SCREEN_WIDTH * 0.5f - blockWidth * 0.5f;
     float blockTop = SCREEN_HEIGHT * 0.5f - CARD_HEIGHT * 0.5f;
 
     Font_Print(title, SCREEN_WIDTH * 0.5f - titleSize.x * 0.5f, blockTop - titleSize.y - 30.0f, TITLE_SCALE);
 
-    for (int i = 0; i < 2; i++)
+    for (int i = 0; i < g_CurrentOptionCount; i++)
     {
         bool selected = (i == g_SelectedOption);
         float scale = selected ? SELECT_SCALE : 1.0f;

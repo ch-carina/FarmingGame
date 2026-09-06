@@ -33,17 +33,24 @@ static LevelType g_CurrentLevel = Level1;
 static float g_TimeRemaining = 0.0f;
 static bool g_TutorialFromMenu = false;
 static bool g_TutorialExitPending = false;
+static bool g_ReturnToMenuPending = false;
 
 static LevelResult g_Result = LevelResult_None;
 static bool g_ShowResult = false;
+static int g_ResultSelectedButton = 0;
 
 static int g_PanelCapLeftID = TEXTURE_INVALID_ID;
 static int g_PanelCapMidID = TEXTURE_INVALID_ID;
 static int g_PanelCapRightID = TEXTURE_INVALID_ID;
 static float g_PanelCapWidth = 0.0f;
 
-static constexpr float RESULT_PANEL_WIDTH = 500.0f;
-static constexpr float RESULT_PANEL_HEIGHT = 220.0f;
+static int g_ButtonCapLeftID = TEXTURE_INVALID_ID;
+static int g_ButtonCapMidID = TEXTURE_INVALID_ID;
+static int g_ButtonCapRightID = TEXTURE_INVALID_ID;
+static float g_ButtonCapWidth = 0.0f;
+
+static constexpr float RESULT_PANEL_WIDTH = 520.0f;
+static constexpr float RESULT_PANEL_HEIGHT = 260.0f;
 
 static int g_CheckpointMoney = 0;
 static InventorySnapshot g_CheckpointInventory;
@@ -56,6 +63,11 @@ static constexpr float COUNTDOWN_PANEL_HEIGHT = 260.0f;
 static int g_AudioID_LevelStart = -1;
 static bool g_GoSoundPlayed = false;
 
+static constexpr float RESULT_BUTTON_WIDTH = 200.0f;
+static constexpr float RESULT_BUTTON_HEIGHT = 65.0f;
+static constexpr float RESULT_BUTTON_GAP = 20.0f;
+static constexpr float RESULT_BUTTON_TEXT_SCALE = 2.2f;
+static constexpr float RESULT_BUTTON_SELECT_SCALE = 1.08f;
 
 //---------------- 
 //Tutorial plots  
@@ -89,7 +101,7 @@ static constexpr PlotRegion g_Level1WaterRegions[] =
 static constexpr ShopItem g_Level1ShopItems[] =
 {
     { ItemType_CarrotSeed, 10 },
-    { ItemType_WheatSeed, 20 },
+    { ItemType_WheatSeed, 15 },
 };
 
 //---------------- 
@@ -111,9 +123,9 @@ static constexpr PlotRegion g_Level2WaterRegions[] =
 
 static constexpr ShopItem g_Level2ShopItems[] =
 {
-    { ItemType_CarrotSeed, 20 },
-    { ItemType_WheatSeed, 10 },
-    { ItemType_LettuceSeed, 15 },
+    { ItemType_CarrotSeed, 10 },
+    { ItemType_WheatSeed, 15 },
+    { ItemType_LettuceSeed, 20 },
     { ItemType_CornSeed, 30 },
     { ItemType_Scarecrow, 30 },
 };
@@ -127,19 +139,19 @@ static constexpr PlotRegion g_Level3Regions[] =
     { 1, 1, 2, 2 },
     { 4, 1, 2, 2 },
     { 6, 4, 2, 2 },
-    { 9, 1, 3, 3 },
+    { 9, 0, 3, 3 },
 };
 
 static constexpr PlotRegion g_Level3WaterRegions[] =
 {
-    { 9, 4, 3, 3 },
+    { 9, 3, 3, 3 },
 };
 
 static constexpr ShopItem g_Level3ShopItems[] =
 {
     { ItemType_CarrotSeed, 10 },
-    { ItemType_WheatSeed, 20 },
-    { ItemType_LettuceSeed, 10 },
+    { ItemType_WheatSeed, 15 },
+    { ItemType_LettuceSeed, 20 },
     { ItemType_CornSeed, 30 },
     { ItemType_BlueberrySeed, 35 },
     { ItemType_Scarecrow, 30 },
@@ -187,7 +199,14 @@ void Level_Initialize()
     g_AudioID_LevelStart = LoadAudio("assets/SFX/level_start.wav");
     g_PanelCapWidth = (float)Texture_GetWidth(g_PanelCapLeftID);
 
-    Level_Load(Level3); // change here for testing different levels
+    g_ButtonCapLeftID = Texture_Load(L"assets/UI/UIL_L.PNG", true);
+    g_ButtonCapMidID = Texture_Load(L"assets/UI/UIL_M.PNG", true);
+    g_ButtonCapRightID = Texture_Load(L"assets/UI/UIL_R.PNG", true);
+    g_ButtonCapWidth = (float)Texture_GetWidth(g_ButtonCapLeftID);
+
+    g_AudioID_LevelStart = LoadAudio("assets/SFX/level_start.wav");
+
+    Level_Load(LevelTutorial); // change here for testing different levels
 }
 
 void Level_Finalize()
@@ -198,6 +217,9 @@ void Level_Finalize()
     Texture_Release(g_PanelCapLeftID);
     Texture_Release(g_PanelCapMidID);
     Texture_Release(g_PanelCapRightID);
+    Texture_Release(g_ButtonCapLeftID);
+    Texture_Release(g_ButtonCapMidID);
+    Texture_Release(g_ButtonCapRightID);
 }
 
 void Level_Load(LevelType level)
@@ -294,25 +316,55 @@ void Level_Update(float delta_time)
 
     if (g_ShowResult)
     {
+        if (g_ReturnToMenuPending)
+        {
+            if (Fade_IsFinished())
+            {
+                g_ReturnToMenuPending = false;
+                Scene_SetNextScene(kTitle);
+            }
+            return;
+        }
+
+        bool finalLevelCleared = (g_Result == LevelResult_Cleared) && (g_CurrentLevel + 1 >= Level_MAX);
+
+        if (!finalLevelCleared)
+        {
+            if (InputKeyboard_IsTrigger(KK_LEFT) || InputKeyboard_IsTrigger(KK_A))  g_ResultSelectedButton = 0;
+            if (InputKeyboard_IsTrigger(KK_RIGHT) || InputKeyboard_IsTrigger(KK_D)) g_ResultSelectedButton = 1;
+        }
+
         if (InputKeyboard_IsTrigger(KK_ENTER))
         {
-            if (g_Result == LevelResult_Failed)
+            if (finalLevelCleared)
+            {
+                // nothing left to choose between -- straight back to the menu
+                Fade_Start(FadeType::kOut, 1.0f, { 0.0f,0.0f,0.0f,0.0f });
+                g_ReturnToMenuPending = true;
+            }
+            else if (g_ResultSelectedButton == 1)
+            {
+
+                Fade_Start(FadeType::kOut, 1.0f, { 0.0f,0.0f,0.0f,0.0f });
+                g_ReturnToMenuPending = true;
+            }
+            else if (g_Result == LevelResult_Failed)
             {
                 SellBox_SetMoney(g_CheckpointMoney);
                 Inventory_SetSnapshot(g_CheckpointInventory);
-                Level_Load(g_CurrentLevel); // retry — reset back to the last checkpoint
+                Level_Load(g_CurrentLevel);
             }
-            else if (g_CurrentLevel + 1 < Level_MAX)
+            else
             {
                 if (!Upgrade_TryBeginChoice(g_CurrentLevel))
                 {
-                    Level_Load((LevelType)(g_CurrentLevel + 1)); // advance — money & inventory carry over
-                    Level_SetCheckpoint(); // new checkpoint = whatever you carried into this level
+                    Level_Load((LevelType)(g_CurrentLevel + 1));
+                    Level_SetCheckpoint();
                 }
                 // else: the branch above finishes the advance once the player picks
             }
+            return;
         }
-        return;
     }
 
     g_TimeRemaining -= delta_time;
@@ -322,6 +374,7 @@ void Level_Update(float delta_time)
         g_Result = (SellBox_GetMoney() >= g_Levels[g_CurrentLevel].moneyQuota)
             ? LevelResult_Cleared : LevelResult_Failed;
         g_ShowResult = true;
+        g_ResultSelectedButton = 0;
 
         if (Shop_IsOpen())
         {
@@ -397,6 +450,34 @@ static void DrawCountdownPanel()
         panelY + COUNTDOWN_PANEL_HEIGHT - countdownSize.y - 50.0f, COUNTDOWN_SCALE);
 }
 
+static void DrawResultButtons(float panelX, float panelY, const char* primaryLabel, const char* quitLabel)
+{
+    const char* labels[2] = { primaryLabel, quitLabel };
+
+    float blockWidth = RESULT_BUTTON_WIDTH * 2.0f + RESULT_BUTTON_GAP;
+    float blockLeft = panelX + (RESULT_PANEL_WIDTH - blockWidth) * 0.5f;
+    float blockY = panelY + RESULT_PANEL_HEIGHT - RESULT_BUTTON_HEIGHT - 30.0f;
+
+    for (int i = 0; i < 2; i++)
+    {
+        bool selected = (i == g_ResultSelectedButton);
+        float scale = selected ? RESULT_BUTTON_SELECT_SCALE : 1.0f;
+
+        float baseX = blockLeft + i * (RESULT_BUTTON_WIDTH + RESULT_BUTTON_GAP);
+        float btnW = RESULT_BUTTON_WIDTH * scale;
+        float btnH = RESULT_BUTTON_HEIGHT * scale;
+        float btnX = baseX - (btnW - RESULT_BUTTON_WIDTH) * 0.5f;
+        float btnY = blockY - (btnH - RESULT_BUTTON_HEIGHT) * 0.5f;
+
+        Draw3Slice(g_ButtonCapLeftID, g_ButtonCapMidID, g_ButtonCapRightID, g_ButtonCapWidth,
+            btnX, btnY, btnW, btnH);
+
+        float textScale = RESULT_BUTTON_TEXT_SCALE * scale;
+        DirectX::XMFLOAT2 textSize = Font_MeasureText(labels[i], textScale);
+        Font_Print(labels[i], btnX + (btnW - textSize.x) * 0.5f, btnY + (btnH - textSize.y) * 0.5f, textScale);
+    }
+}
+
 void Level_DrawResult()
 {
     if (g_CurrentLevel == LevelTutorial)
@@ -428,17 +509,21 @@ void Level_DrawResult()
     bool finalLevelCleared = (g_Result == LevelResult_Cleared) && (g_CurrentLevel + 1 >= Level_MAX);
 
     const char* headline = (g_Result == LevelResult_Cleared) ? "LEVEL CLEARED!" : "NOT CLEARED";
-    const char* prompt = finalLevelCleared ? "ALL LEVELS COMPLETE"
-        : (g_Result == LevelResult_Cleared) ? "Press Enter for Next Level" : "Press Enter to Retry";
-
     constexpr float HEADLINE_SCALE = 4.0f;
-    constexpr float PROMPT_SCALE = 2.2f;
-
     DirectX::XMFLOAT2 headlineSize = Font_MeasureText(headline, HEADLINE_SCALE);
-    DirectX::XMFLOAT2 promptSize = Font_MeasureText(prompt, PROMPT_SCALE);
-
     Font_Print(headline, panelX + (RESULT_PANEL_WIDTH - headlineSize.x) * 0.5f, panelY + 60.0f, HEADLINE_SCALE);
-    Font_Print(prompt, panelX + (RESULT_PANEL_WIDTH - promptSize.x) * 0.5f, panelY + RESULT_PANEL_HEIGHT - 70.0f, PROMPT_SCALE);
+
+    if (finalLevelCleared)
+    {
+        constexpr float PROMPT_SCALE = 2.2f;
+        const char* prompt = "ALL LEVELS COMPLETE";
+        DirectX::XMFLOAT2 promptSize = Font_MeasureText(prompt, PROMPT_SCALE);
+        Font_Print(prompt, panelX + (RESULT_PANEL_WIDTH - promptSize.x) * 0.5f, panelY + RESULT_PANEL_HEIGHT - 70.0f, PROMPT_SCALE);
+        return;
+    }
+
+    const char* primaryLabel = (g_Result == LevelResult_Failed) ? "Retry" : "Continue";
+    DrawResultButtons(panelX, panelY, primaryLabel, "Quit");
 }
 
 LevelType Level_GetCurrent()

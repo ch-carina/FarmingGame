@@ -34,25 +34,25 @@ static int GetSellPrice(ItemType item)
 	switch (item)
 	{
 	case ItemType_Carrot:
-		return 40; 
+		return 20; 
 	case ItemType_CarrotGold: 
-		return 45;
+		return 25;
 	case ItemType_Wheat:
 		return 20;  
 	case ItemType_WheatGold:
 		return 25;
 	case ItemType_Lettuce:
-		return 30;
+		return 25;
 	case ItemType_LettuceGold:
-		return 35;
+		return 30;
 	case ItemType_Corn:
 		return 30;
 	case ItemType_CornGold:
 		return 35;
 	case ItemType_Blueberry:
-		return 35;
+		return 30;
 	case ItemType_BlueberryGold:
-		return 40;
+		return 35;
 	default:
 		return 0;
 	}

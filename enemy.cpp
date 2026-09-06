@@ -42,6 +42,8 @@ static float g_EnemySpawnTimer = 0.0f;
 static constexpr float ENEMY_SPAWN_INTERVAL = 4.0f; //space between each enemy spawn by seconds
 static constexpr float ENEMY_SPAWN_COOLDOWN = 4.0f; //space between spawns 
 
+static constexpr float RABBIT_FLICKER_DURATION = 1.0f;
+static constexpr float RABBIT_FLICKER_INTERVAL = 0.1f;
 
 void EnemyInitialize()
 {	
@@ -173,6 +175,32 @@ void Enemy_Destroy(int index)
 	}
 
 	g_Enemies[index].isDestroyed = true;
+}
+
+void Enemy_Hit(int index)
+{
+	if (index < 0 || index >= g_EnemyCount) return;
+
+	if (g_Enemies[index].type != EnemyType_Rabbit)
+	{
+		Enemy_Destroy(index);
+		return;
+	}
+
+	if (g_Enemies[index].state == EnemyState_Flicker || g_Enemies[index].state == EnemyState_Return)
+	{
+		return; // already fleeing from an earlier hit -- ignore
+	}
+
+	CropPlot* plot = CropPlot_Get(g_Enemies[index].targetPlotIndex);
+	if (plot != nullptr)
+	{
+		plot->hasActiveEnemy = false;
+		plot->spawnCooldownTimer = ENEMY_SPAWN_COOLDOWN;
+	}
+
+	g_Enemies[index].state = EnemyState_Flicker;
+	g_Enemies[index].eatingTimer = 0.0f; // reused as the flicker timer
 }
 
 void Enemy_Cleanup()
@@ -367,6 +395,18 @@ void EnemyUpdate(float delta_time)
 			}
 			break;
 		}
+		case EnemyState_Flicker:
+		{
+			e.eatingTimer += delta_time; // reused as the flicker timer
+			if (e.eatingTimer >= RABBIT_FLICKER_DURATION)
+			{
+				e.state = EnemyState_Return;
+				e.animState = EnemyAnim_Escape;
+				e.currentFrame = 0;
+				e.animTimer = 0.0f;
+			}
+			break;
+		}
 		case EnemyState_Return:
 		{
 			if (e.type == EnemyType_Mole)
@@ -438,6 +478,12 @@ void EnemyDraw()
 	for (int i = 0; i < g_EnemyCount; i++)
 	{
 		Enemy& e = g_Enemies[i];
+
+		if (e.state == EnemyState_Flicker)
+		{
+			int flickerPhase = (int)(e.eatingTimer / RABBIT_FLICKER_INTERVAL);
+			if (flickerPhase % 2 == 1) continue; // skip this frame -- creates the flicker
+		}
 
 		AnimInfo anim = EnemyAnimation_GetInfo(e.type, e.animState);
 		if (anim.columns <= 0) continue;

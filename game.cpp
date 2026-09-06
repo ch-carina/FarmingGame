@@ -1,6 +1,7 @@
 #include "game.h"
 #include "level.h"
 #include "game_player.h"
+#include "game_player_interaction.h"
 #include "config.h"
 #include"game_player_bullet.h"
 #include "enemy.h"
@@ -25,6 +26,7 @@
 #include "spotlight.h"
 #include "draw_queue.h"
 #include "fence.h"
+#include "leaderboard.h"
 
 #ifdef _DEBUG
 #include "collision_debug.h"
@@ -60,6 +62,7 @@ void Game_Initialize()
 	Font_Initialize();
 	SellBox_Initialize();
 	Level_SetCheckpoint(); // Level 1's baseline: 100 coin + starting inventory
+	PlayerInteraction_ResetUpgrades();
 	Blur_Initialize();
 	DamageFlash_Initialize();
 	HueChange_Initialize();
@@ -76,6 +79,11 @@ void Game_Initialize()
 
 void Game_Finalize()
 {
+	if (Level_GetCurrent() != LevelTutorial)
+	{
+		Leaderboard_RecordAttempt(Level_GetCurrent(), SellBox_GetMoney());
+	}
+
 	GamePlayer_Finalize();
 	Ground_Finalize();
 	CropFinalize();
@@ -239,7 +247,7 @@ void checkPlayerBulletsvsEnemies()
 
 				// Handle collision: destroy both the bullet and the enemy
 				GamePlayer_BulletDestroy(playerBulletIndex); // Destroy the bullet
-				Enemy_Destroy(enemyIndex); // Mark the enemy for destruction
+				Enemy_Hit(enemyIndex);
 			}
 		}
 	}

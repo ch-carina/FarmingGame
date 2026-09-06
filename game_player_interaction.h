@@ -13,4 +13,10 @@ ItemType PlayerInteraction_GetHarvestPopupItem();
 bool PlayerInteraction_IsFilling();
 float PlayerInteraction_GetFillProgress();
 
+bool PlayerInteraction_GetHoverTile(float& outX, float& outY);
+
+void PlayerInteraction_ApplyInteractionSpeedBoost();
+
+void PlayerInteraction_ResetUpgrades();
+
 #endif

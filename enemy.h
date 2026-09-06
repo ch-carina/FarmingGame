@@ -28,7 +28,8 @@ enum EnemyState
 	EnemyState_Alive,
 	EnemyState_Eating,
 	EnemyState_Return,
-	EnemyState_Burrowing
+	EnemyState_Burrowing,
+	EnemyState_Flicker
 };
 
 enum EnemyAnimState
@@ -90,6 +91,8 @@ int EnemyGetCount();
 void Enemy_CheckCropSpawns(float delta_time);
 
 void Enemy_Destroy(int index);
+
+void Enemy_Hit(int index);
 
 void Enemy_Cleanup();
 

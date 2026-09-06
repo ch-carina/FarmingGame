@@ -18,6 +18,7 @@
 #include "ground.h"
 #include "Audio.h"
 #include "level.h"
+#include "leaderboard.h"
 #include <Windows.h>
 #include <cstdlib>
 
@@ -31,15 +32,17 @@ static int g_AudioID_MenuSelect{ -1 };
 enum MenuState
 {
 	kMenuMain,
-	kMenuCredits
+	kMenuCredits,
+	kMenuLeaderboard
 };
 static MenuState g_MenuState{ kMenuMain };
 
-static constexpr int kButtonCount = 4;
+static constexpr int kButtonCount = 5;
 static const char* g_ButtonLabels[kButtonCount] =
 {
 	"Play Game",
 	"Instructions",
+	"Leaderboard",
 	"Credits",
 	"Quit",
 };
@@ -49,6 +52,15 @@ static int g_SlotCapLeftID = TEXTURE_INVALID_ID;
 static int g_SlotCapMidID = TEXTURE_INVALID_ID;
 static int g_SlotCapRightID = TEXTURE_INVALID_ID;
 static float g_SlotCapWidth = 0.0f;
+
+static int g_PanelCapLeftID = TEXTURE_INVALID_ID;
+static int g_PanelCapMidID = TEXTURE_INVALID_ID;
+static int g_PanelCapRightID = TEXTURE_INVALID_ID;
+static float g_PanelCapWidth = 0.0f;
+static int g_PanelBackingTextureID = TEXTURE_INVALID_ID;
+
+static constexpr float SUBSCREEN_PANEL_WIDTH = 700.0f;
+static constexpr float SUBSCREEN_PANEL_HEIGHT = 350.0f;
 
 static constexpr float TITLE_TOP_MARGIN = 30.0f;
 static constexpr float TITLE_BUTTON_GAP = 30.0f;
@@ -93,9 +105,11 @@ static constexpr float RABBIT_NIBBLE_MIN = 1.5f;
 static constexpr float RABBIT_NIBBLE_MAX = 3.0f;
 static constexpr float RABBIT_FRAME_RATE = 0.15f;
 static constexpr int RABBIT_FRAME_SIZE = 96;
+static constexpr int RABBIT_RUN_FRAMES[] = { 0, 1, 2, 3, 6 };
+static constexpr int RABBIT_RUN_FRAME_COUNT = sizeof(RABBIT_RUN_FRAMES) / sizeof(RABBIT_RUN_FRAMES[0]);
+static constexpr int RABBIT_RUN_COLUMNS = 5;
 
 // matches the run/nibble sheets already defined in enemy_animation.cpp
-static constexpr int RABBIT_RUN_START = 0, RABBIT_RUN_COUNT = 4, RABBIT_RUN_COLUMNS = 5;
 static constexpr int RABBIT_NIBBLE_START = 0, RABBIT_NIBBLE_COUNT = 7, RABBIT_NIBBLE_COLUMNS = 4;
 
 static float RandomRange(float minV, float maxV)
@@ -139,7 +153,7 @@ static void UpdateMenuRabbits(float delta_time)
 		MenuRabbit& r = g_MenuRabbits[i];
 		if (r.state == MenuRabbitState_Inactive) continue;
 
-		int frameCount = (r.state == MenuRabbitState_Nibbling) ? RABBIT_NIBBLE_COUNT : RABBIT_RUN_COUNT;
+		int frameCount = (r.state == MenuRabbitState_Nibbling) ? RABBIT_NIBBLE_COUNT : RABBIT_RUN_FRAME_COUNT;		
 		r.animTimer += delta_time;
 		if (r.animTimer >= RABBIT_FRAME_RATE)
 		{
@@ -189,10 +203,11 @@ static void DrawMenuRabbits()
 
 		bool nibbling = (r.state == MenuRabbitState_Nibbling);
 		int textureID = nibbling ? g_RabbitNibbleTextureID : g_RabbitRunTextureID;
-		int startFrame = nibbling ? RABBIT_NIBBLE_START : RABBIT_RUN_START;
+		int startFrame = RABBIT_NIBBLE_START;
 		int columns = nibbling ? RABBIT_NIBBLE_COLUMNS : RABBIT_RUN_COLUMNS;
 
-		int frame = startFrame + r.animFrame;
+		int runFrameIndex = (r.direction > 0) ? (RABBIT_RUN_FRAME_COUNT - 1 - r.animFrame) : r.animFrame;
+		int frame = nibbling ? (startFrame + r.animFrame) : RABBIT_RUN_FRAMES[runFrameIndex];
 		int column = frame % columns;
 		int row = frame / columns;
 
@@ -200,9 +215,7 @@ static void DrawMenuRabbits()
 		int srcY = row * RABBIT_FRAME_SIZE;
 		int srcW = RABBIT_FRAME_SIZE;
 
-		// the art faces left; mirror the UVs (not the quad) to face right --
-		// a negative scale flips the geometry's winding and gets backface-culled instead
-		if (r.direction > 0)
+		if (r.direction < 0)
 		{
 			srcX += srcW;
 			srcW = -srcW;
@@ -227,10 +240,45 @@ static void Draw3Slice(int leftID, int midID, int rightID, float capWidth,
 	Sprite_Draw(rightID, x + capWidth + midWidth, y, capWidth, height, tint);
 }
 
+static void DrawSubscreenPanel(float& outPanelX, float& outPanelY)
+{
+	float titleH = (float)Texture_GetHeight(g_TextureID_MenuTitle);
+	outPanelX = (SCREEN_WIDTH - SUBSCREEN_PANEL_WIDTH) * 0.5f;
+	outPanelY = TITLE_TOP_MARGIN + titleH + TITLE_BUTTON_GAP;
+
+	constexpr DirectX::XMFLOAT4 PANEL_BACKING_COLOR = { 0.10f, 0.07f, 0.05f, 0.9f };
+	Sprite_Draw(g_PanelBackingTextureID, outPanelX, outPanelY, SUBSCREEN_PANEL_WIDTH, SUBSCREEN_PANEL_HEIGHT, PANEL_BACKING_COLOR);
+	Draw3Slice(g_PanelCapLeftID, g_PanelCapMidID, g_PanelCapRightID, g_PanelCapWidth,
+		outPanelX, outPanelY, SUBSCREEN_PANEL_WIDTH, SUBSCREEN_PANEL_HEIGHT);
+}
+
 static float GetButtonBlockStartY()
 {
 	float titleH = (float)Texture_GetHeight(g_TextureID_MenuTitle);
 	return TITLE_TOP_MARGIN + titleH + TITLE_BUTTON_GAP;
+}
+
+static void GetButtonLayoutPosition(int index, float& outX, float& outY)
+{
+	float startY = GetButtonBlockStartY();
+	constexpr float COLUMN_GAP = 30.0f;
+
+	if (index == 0) // Play Game -- centered on its own row
+	{
+		outX = SCREEN_WIDTH * 0.5f - BUTTON_WIDTH * 0.5f;
+		outY = startY;
+		return;
+	}
+
+	int gridIndex = index - 1; // 0..3 across the remaining four buttons
+	int row = gridIndex / 2;
+	int col = gridIndex % 2;
+
+	float rowWidth = BUTTON_WIDTH * 2.0f + COLUMN_GAP;
+	float rowLeft = SCREEN_WIDTH * 0.5f - rowWidth * 0.5f;
+
+	outX = rowLeft + col * (BUTTON_WIDTH + COLUMN_GAP);
+	outY = startY + (row + 1) * (BUTTON_HEIGHT + BUTTON_SPACING_Y);
 }
 
 static void ActivateButton(int index)
@@ -252,10 +300,13 @@ static void ActivateButton(int index)
 			g_IsChangeScene = true;
 		}
 		break;
-	case 2: // Credits
+	case 2: // Leaderboard
+		g_MenuState = kMenuLeaderboard;
+		break;
+	case 3: // Credits
 		g_MenuState = kMenuCredits;
 		break;
-	case 3: // Quit
+	case 4: // Quit
 		PostMessage(GetActiveWindow(), WM_CLOSE, 0, 0);
 		break;
 	}
@@ -269,6 +320,11 @@ void Menu_Initialize()
 	g_SlotCapMidID = Texture_Load(L"assets/UI/UIL_M.PNG", true);
 	g_SlotCapRightID = Texture_Load(L"assets/UI/UIL_R.PNG", true);
 	g_SlotCapWidth = (float)Texture_GetWidth(g_SlotCapLeftID);
+
+	g_PanelCapLeftID = Texture_Load(L"assets/UI/UI_L.PNG", true);
+	g_PanelCapMidID = Texture_Load(L"assets/UI/UI_M.PNG", true);
+	g_PanelCapRightID = Texture_Load(L"assets/UI/UI_R.PNG", true);
+	g_PanelCapWidth = (float)Texture_GetWidth(g_PanelCapLeftID);
 
 	Ground_Initialize();
 	Ground_LoadLayout(nullptr, 0); // no plot regions in the menu, so every tile gets a random ground tile
@@ -295,8 +351,16 @@ void Menu_Finalize()
 	Texture_Release(g_SlotCapLeftID);
 	Texture_Release(g_SlotCapMidID);
 	Texture_Release(g_SlotCapRightID);
+	Texture_Release(g_PanelCapLeftID);
+	Texture_Release(g_PanelCapMidID);
+	Texture_Release(g_PanelCapRightID);
+	Texture_Release(g_PanelBackingTextureID);
 	Texture_Release(g_RabbitRunTextureID);
 	Texture_Release(g_RabbitNibbleTextureID);
+	Texture_Release(g_PanelCapLeftID);
+	Texture_Release(g_PanelCapMidID);
+	Texture_Release(g_PanelCapRightID);
+	Texture_Release(g_PanelBackingTextureID);
 	Font_Finalize();
 	UnloadAudio(g_AudioID_MenuMove);
 	UnloadAudio(g_AudioID_MenuSelect);
@@ -355,14 +419,16 @@ void Menu_Draw()
 
 	if (g_MenuState == kMenuMain)
 	{
+		constexpr float TITLE_SCALE = 3.0f;
 		float startY = GetButtonBlockStartY();
 
 		for (int i = 0; i < kButtonCount; ++i)
 		{
 			bool selected = (i == g_SelectedButton);
 			float scale = selected ? SELECT_SCALE : 1.0f;
-			float baseX = SCREEN_WIDTH * 0.5f - BUTTON_WIDTH * 0.5f;
-			float baseY = startY + i * (BUTTON_HEIGHT + BUTTON_SPACING_Y);
+
+			float baseX, baseY;
+			GetButtonLayoutPosition(i, baseX, baseY);
 
 			float panelW = BUTTON_WIDTH * scale;
 			float panelH = BUTTON_HEIGHT * scale;
@@ -379,10 +445,74 @@ void Menu_Draw()
 			Font_Print(g_ButtonLabels[i], textX, textY, textScale);
 		}
 	}
+	else if (g_MenuState == kMenuLeaderboard)
+	{
+		float panelX, panelY;
+		DrawSubscreenPanel(panelX, panelY);
+		constexpr float TITLE_SCALE = 3.0f;
+		constexpr float LINE_SCALE = 2.2f;
+		constexpr float LINE_SPACING = 10.0f;
+
+		const char* title = "TOP 5 ATTEMPTS";
+		DirectX::XMFLOAT2 titleSize = Font_MeasureText(title, TITLE_SCALE);
+		float y = panelY + 40.0f;
+		Font_Print(title, SCREEN_WIDTH * 0.5f - titleSize.x * 0.5f, y, TITLE_SCALE);
+		y += titleSize.y + 30.0f;
+
+		int count = Leaderboard_GetCount();
+		if (count == 0)
+		{
+			const char* empty = "No attempts recorded yet.";
+			DirectX::XMFLOAT2 emptySize = Font_MeasureText(empty, LINE_SCALE);
+			Font_Print(empty, SCREEN_WIDTH * 0.5f - emptySize.x * 0.5f, y, LINE_SCALE);
+			y += emptySize.y + LINE_SPACING;
+		}
+		else
+		{
+			for (int i = 0; i < count; i++)
+			{
+				const LeaderboardEntry& entry = Leaderboard_GetEntry(i);
+				char line[64];
+				snprintf(line, sizeof(line), "%d. Level %d - $%d", i + 1, (int)entry.levelReached, entry.money);
+				DirectX::XMFLOAT2 lineSize = Font_MeasureText(line, LINE_SCALE);
+				Font_Print(line, SCREEN_WIDTH * 0.5f - lineSize.x * 0.5f, y, LINE_SCALE);
+				y += lineSize.y + LINE_SPACING;
+			}
+		}
+
+		const char* prompt = "Press ENTER to return.";
+		DirectX::XMFLOAT2 promptSize = Font_MeasureText(prompt, LINE_SCALE);
+		Font_Print(prompt, SCREEN_WIDTH * 0.5f - promptSize.x * 0.5f, y + 20.0f, LINE_SCALE);
+	}
 	else if (g_MenuState == kMenuCredits)
 	{
-		const char* text = "Made by Carina Chao\n\nPress ENTER to return.";
-		DirectX::XMFLOAT2 textSize = Font_MeasureText(text, 2.5f);
-		Font_Print(text, SCREEN_WIDTH * 0.5f - textSize.x * 0.5f, SCREEN_HEIGHT * 0.5f - textSize.y * 0.5f, 2.5f);
+		float panelX, panelY;
+		DrawSubscreenPanel(panelX, panelY);
+
+		constexpr float CREDITS_SCALE = 2.5f;
+		constexpr float CREDITS_LINE_SPACING = 10.0f;
+
+		const char* lines[] =
+		{
+			"Code and Art by Carina Chao",
+			"Music and SFX from Maou.audio",
+			"",
+			"Press ENTER to return.",
+		};
+		constexpr int lineCount = sizeof(lines) / sizeof(lines[0]);
+
+		float totalHeight = 0.0f;
+		for (int i = 0; i < lineCount; i++)
+		{
+			totalHeight += Font_MeasureText(lines[i], CREDITS_SCALE).y + (i > 0 ? CREDITS_LINE_SPACING : 0.0f);
+		}
+
+		float y = panelY + (SUBSCREEN_PANEL_HEIGHT - totalHeight) * 0.5f;
+		for (int i = 0; i < lineCount; i++)
+		{
+			DirectX::XMFLOAT2 lineSize = Font_MeasureText(lines[i], CREDITS_SCALE);
+			Font_Print(lines[i], SCREEN_WIDTH * 0.5f - lineSize.x * 0.5f, y, CREDITS_SCALE);
+			y += lineSize.y + CREDITS_LINE_SPACING;
+		}
 	}
 }

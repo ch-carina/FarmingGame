@@ -55,6 +55,9 @@ static constexpr float FILL_BAR_WIDTH = 64.0f;
 static constexpr float FILL_BAR_HEIGHT = 18.0f;
 static constexpr float FILL_BAR_INSET = 4.0f; // how far the fill sits inside the frame's border
 
+static int g_HighlightTextureID = TEXTURE_INVALID_ID;
+static float g_HighlightPulseTime = 0.0f;
+
 static XMFLOAT2 FacingToDirection(PlayerFacing facing)
 {
 	switch (facing)
@@ -135,8 +138,27 @@ bool GamePlayer_TakeDamage()
 	return true;
 }
 
+static void DrawInteractionHighlight()
+{
+	float tileX, tileY;
+	if (!PlayerInteraction_GetHoverTile(tileX, tileY)) return;
+
+	constexpr float BORDER_THICKNESS = 4.0f;
+	constexpr float PULSE_SPEED = 6.0f;
+
+	float pulse = 0.6f + 0.4f * (sinf(g_HighlightPulseTime * PULSE_SPEED) * 0.5f + 0.5f);
+	DirectX::XMFLOAT4 glowColor{ 1.0f, 0.9f, 0.1f, pulse };
+
+	Sprite_Draw(g_HighlightTextureID, tileX, tileY, PLOT_SIZE, BORDER_THICKNESS, glowColor); // top
+	Sprite_Draw(g_HighlightTextureID, tileX, tileY + PLOT_SIZE - BORDER_THICKNESS, PLOT_SIZE, BORDER_THICKNESS, glowColor); // bottom
+	Sprite_Draw(g_HighlightTextureID, tileX, tileY, BORDER_THICKNESS, PLOT_SIZE, glowColor); // left
+	Sprite_Draw(g_HighlightTextureID, tileX + PLOT_SIZE - BORDER_THICKNESS, tileY, BORDER_THICKNESS, PLOT_SIZE, glowColor); // right
+}
+
 void GamePlayer_DrawPopup()
 {
+	DrawInteractionHighlight();
+	
 	if (PlayerInteraction_IsFilling())
 	{
 		float barX = g_Position.x + (PLAYER_WIDTH - FILL_BAR_WIDTH) * 0.5f;
@@ -169,6 +191,9 @@ void GamePlayer_Initialize(float start_x, float start_y)
 	g_ShadowTextureID = Texture_Load(L"assets/MC/Shadow.PNG", true);
 	g_FillBarFrameTextureID = Texture_Load(L"assets/UI/FillBar_L.PNG", true);
 	g_FillBarFillTextureID = Texture_Load(L"assets/UI/Fill.PNG", true);
+	g_HighlightTextureID = Texture_Load(L"assets/white.png", false);
+
+	g_Speed = PLAYER_DEFAULT_SPEED;
 
 	g_Position.x = start_x;
 	g_Position.y = start_y;
@@ -191,6 +216,7 @@ void GamePlayer_Finalize()
 	Texture_Release(g_ShadowTextureID);
 	Texture_Release(g_FillBarFrameTextureID);
 	Texture_Release(g_FillBarFillTextureID);
+	Texture_Release(g_HighlightTextureID);
 }
 
 //Changing Player Animation State 
@@ -223,6 +249,8 @@ CollisionCircle GamePlayer_GetCollisionCircle()
 
 void GamePlayer_Update(float delta_time)
 {
+	g_HighlightPulseTime += delta_time;
+
 	XMFLOAT2 direction{ 0.0f,0.0f };
 
 	if (Shop_IsOpen() || Level_IsShowingResult())

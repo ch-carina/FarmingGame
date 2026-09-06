@@ -52,15 +52,19 @@ static bool CropForSeed(ItemType item, CropType& outType)
 	return false;
 }
 
+static constexpr float BASE_PLANT_TIME = 0.75f;
+static constexpr float BASE_WATER_TIME = 0.75f;
+static constexpr float BASE_HARVEST_DISPLAY_TIME = 0.75f;
+
 //player planting times 
 static float plantingTimer = 0.0f;
-static constexpr float PLANT_TIME = 0.75f; //time it takes to plant a crop
+static float PLANT_TIME = BASE_PLANT_TIME; //time it takes to plant a crop
 static int currentPlotIndex = -1; //index of the current plot being planted
 static float wateringTimer = 0.0f;
-static constexpr float WATER_TIME = 0.75f;
+static float WATER_TIME = BASE_WATER_TIME;
 
 //Harvesting information 
-static constexpr float HARVEST_DISPLAY_TIME = 0.75f;
+static float HARVEST_DISPLAY_TIME = BASE_HARVEST_DISPLAY_TIME;
 static bool isHarvesting = false;
 static float harvestTimer = 0.0f;
 static CropRank pendingHarvestRank = CropRank_Normal;
@@ -68,6 +72,8 @@ static CropType pendingHarvestType = CropType_Carrot;
 
 static float fenceTimer = 0.0f;
 static int currentFenceSlotIndex = -1;
+
+
 
 void PlayerInteraction_UpdateHarvestTimer(float delta_time)
 {
@@ -266,4 +272,43 @@ float PlayerInteraction_GetFillProgress()
 	if (plantingTimer > 0.0f) return plantingTimer / PLANT_TIME;
 	if (fenceTimer > 0.0f) return fenceTimer / PLANT_TIME;
 	return 0.0f;
+}
+
+bool PlayerInteraction_GetHoverTile(float& outX, float& outY)
+{
+	if (PlayerInteraction_IsFilling()) return false; // hide the instant the player commits to an action
+
+	int fenceSlot = Fence_GetPlayerSlot();
+	if (fenceSlot != -1)
+	{
+		return Fence_GetSlotPosition(fenceSlot, outX, outY);
+	}
+
+	int plotIndex = CropPlot_GetPlayerPlot();
+	if (plotIndex != -1)
+	{
+		CropPlot* plot = CropPlot_Get(plotIndex);
+		if (plot != nullptr)
+		{
+			outX = plot->x;
+			outY = plot->y;
+			return true;
+		}
+	}
+	return false;
+}
+
+void PlayerInteraction_ApplyInteractionSpeedBoost()
+{
+	constexpr float SPEED_MULTIPLIER = 0.7f; // 30% faster
+	PLANT_TIME *= SPEED_MULTIPLIER;
+	WATER_TIME *= SPEED_MULTIPLIER;
+	HARVEST_DISPLAY_TIME *= SPEED_MULTIPLIER;
+}
+
+void PlayerInteraction_ResetUpgrades()
+{
+	PLANT_TIME = BASE_PLANT_TIME;
+	WATER_TIME = BASE_WATER_TIME;
+	HARVEST_DISPLAY_TIME = BASE_HARVEST_DISPLAY_TIME;
 }

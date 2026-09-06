@@ -14,6 +14,7 @@
 #include "scene.h"
 #include "game.h"
 #include "game_player.h"
+#include "leaderboard.h"
 
 
 bool Application_Initialize(HWND hWnd)
@@ -34,6 +35,7 @@ bool Application_Initialize(HWND hWnd)
 	Sprite_Initialize();
 
 	Fade_Initialize();
+	Leaderboard_Initialize();
 	Scene_Initialize();
 
 	return true;

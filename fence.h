@@ -18,4 +18,6 @@ void Fence_RegisterHit(int index); // breaks the segment after enough hits
 
 int Fence_GetBlockingSlot(const CollisionCircle& circle, int ignoreIndex = -1);
 
+bool Fence_GetSlotPosition(int index, float& outX, float& outY);
+
 #endif FENCE_H

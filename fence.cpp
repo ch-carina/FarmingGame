@@ -212,6 +212,14 @@ int Fence_GetBlockingSlot(const CollisionCircle& circle, int ignoreIndex)
     return -1;
 }
 
+bool Fence_GetSlotPosition(int index, float& outX, float& outY)
+{
+    if (index < 0 || index >= g_FenceSlotCount) return false;
+    outX = g_FenceSlots[index].x;
+    outY = g_FenceSlots[index].y;
+    return true;
+}
+
 bool Fence_IsBlocked(const CollisionCircle& circle)
 {
     return Fence_GetBlockingSlot(circle) != -1;
