@@ -42,6 +42,7 @@ static constexpr float SPEED_BOOST_AMOUNT = 120.0f;
 static constexpr int MAX_UPGRADE_OPTIONS = 3;
 
 static int g_SpeedIconTextureID = TEXTURE_INVALID_ID;
+static int g_HandsIconTextureID = TEXTURE_INVALID_ID;
 
 static bool g_ChoiceActive = false;
 static int g_SelectedOption = 0;
@@ -83,7 +84,7 @@ static int GetUpgradeIconTexture(UpgradeType type)
     {
     case UpgradeType_MoveSpeed: return g_SpeedIconTextureID;
     case UpgradeType_WaterArea: return Inventory_GetIconTexture(ItemType_WaterPail);
-    case UpgradeType_InteractionSpeed: return g_SpeedIconTextureID;
+    case UpgradeType_InteractionSpeed: return g_HandsIconTextureID;
     default: return TEXTURE_INVALID_ID;
     }
 }
@@ -108,6 +109,7 @@ static void ApplyUpgrade(UpgradeType type)
 void Upgrade_Initialize()
 {
     g_SpeedIconTextureID = Texture_Load(L"assets/UI/SpeedBoost.PNG", true);
+    g_HandsIconTextureID = Texture_Load(L"assets/UI/Hands.PNG", true);
 
     g_PanelCapLeftID = Texture_Load(L"assets/UI/UI_L.PNG", true);
     g_PanelCapMidID = Texture_Load(L"assets/UI/UI_M.PNG", true);
@@ -122,6 +124,7 @@ void Upgrade_Initialize()
 void Upgrade_Finalize()
 {
     Texture_Release(g_SpeedIconTextureID);
+    Texture_Release(g_HandsIconTextureID);
     Texture_Release(g_PanelCapLeftID);
     Texture_Release(g_PanelCapMidID);
     Texture_Release(g_PanelCapRightID);

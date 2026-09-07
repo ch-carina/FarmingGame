@@ -25,13 +25,6 @@ void UninitAudio()
 }
 
 
-
-
-
-
-
-
-
 struct AUDIO
 {
 	IXAudio2SourceVoice*	SourceVoice{};
@@ -172,6 +165,12 @@ void PlayAudio(int Index, bool Loop)
 	// Ä¶
 	g_Audio[Index].SourceVoice->Start();
 
+}
+
+void StopAudio(int Index) // for stopping audio playback when wanted
+{
+	g_Audio[Index].SourceVoice->Stop();
+	g_Audio[Index].SourceVoice->FlushSourceBuffers();
 }
 
 

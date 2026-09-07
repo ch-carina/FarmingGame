@@ -6,6 +6,7 @@
 #include "config.h"
 #include "texture.h"
 #include "sprite.h"
+#include "Audio.h"
 #include "draw_queue.h"
 
 static constexpr float SELL_BOX_WIDTH = 192.0f;
@@ -18,6 +19,7 @@ static constexpr float COIN_SIZE = 42.0f;
 
 static int g_SellBoxTextureID = TEXTURE_INVALID_ID;
 static int g_CoinTextureID = TEXTURE_INVALID_ID;
+static int g_AudioID_Coin = -1;
 static CollisionBox g_SellBoxCollision;
 
 static int g_Money = 0;
@@ -62,6 +64,7 @@ void SellBox_Initialize()
 {
 	g_SellBoxTextureID = Texture_Load(L"assets/GroundTiles/SellBox.PNG", true);
 	g_CoinTextureID = Texture_Load(L"assets/UI/Coin.PNG", true);
+	g_AudioID_Coin = LoadAudio("assets/SFX/coin.wav");
 	
 	g_SellBoxCollision =
 	{
@@ -88,6 +91,7 @@ void SellBox_Finalize()
 {
 	Texture_Release(g_SellBoxTextureID);
 	Texture_Release(g_CoinTextureID);
+	UnloadAudio(g_AudioID_Coin);
 }
 
 bool SellBox_IsPlayerNear()
@@ -111,6 +115,7 @@ bool SellBox_TrySell()
 	g_PendingCoinAmount = price * count;
 	g_ShowCoinPopup = true;
 	g_CoinPopupTimer = 0.0f;
+	PlayAudio(g_AudioID_Coin);
 
 	return true;
 }

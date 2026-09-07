@@ -62,6 +62,10 @@ static constexpr float COUNTDOWN_PANEL_WIDTH = 420.0f;
 static constexpr float COUNTDOWN_PANEL_HEIGHT = 260.0f;
 static int g_AudioID_LevelStart = -1;
 static bool g_GoSoundPlayed = false;
+static int g_AudioID_LevelFail = -1;
+static float g_LevelFailRepeatTimer = -1.0f; // -1 = inactive; counts down to the second play
+static constexpr float LEVEL_FAIL_REPEAT_DELAY = 0.3f;
+static int g_AudioID_LevelClear = -1;
 
 static constexpr float RESULT_BUTTON_WIDTH = 200.0f;
 static constexpr float RESULT_BUTTON_HEIGHT = 65.0f;
@@ -128,6 +132,7 @@ static constexpr ShopItem g_Level2ShopItems[] =
     { ItemType_LettuceSeed, 20 },
     { ItemType_CornSeed, 30 },
     { ItemType_Scarecrow, 30 },
+    { ItemType_Fence, 5 },
 };
 
 //---------------- 
@@ -169,9 +174,9 @@ static constexpr ShopItem g_Level3ShopItems[] =
 static constexpr LevelLayout g_Levels[Level_MAX] =
 {
     { g_TutorialRegions, 1, 9999.0f, g_TutorialShopItems, 1, 0, nullptr, 0 },
-    { g_Level1Regions, 3 , 90.0f,  g_Level1ShopItems, 2, 200, g_Level1WaterRegions, 2 },
-    { g_Level2Regions, 4 , 120.0f,  g_Level2ShopItems, 5, 400, g_Level2WaterRegions, 1 },
-    { g_Level3Regions, 4 , 180.0f, g_Level3ShopItems, 8, 600, g_Level3WaterRegions, 1 },
+    { g_Level1Regions, 3 , 90.0f,  g_Level1ShopItems, 2, 150, g_Level1WaterRegions, 2 },
+    { g_Level2Regions, 4 , 150.0f,  g_Level2ShopItems, 6, 450, g_Level2WaterRegions, 1 },
+    { g_Level3Regions, 4 , 210.0f, g_Level3ShopItems, 8, 650, g_Level3WaterRegions, 1 },
 };
 
 static void Draw3Slice(int leftID, int midID, int rightID, float capWidth, float x, float y, float width, float height)
@@ -205,6 +210,8 @@ void Level_Initialize()
     g_ButtonCapWidth = (float)Texture_GetWidth(g_ButtonCapLeftID);
 
     g_AudioID_LevelStart = LoadAudio("assets/SFX/level_start.wav");
+    g_AudioID_LevelFail = LoadAudio("assets/SFX/levelFail.wav");
+    g_AudioID_LevelClear = LoadAudio("assets/SFX/levelClear.wav");
 
     Level_Load(LevelTutorial); // change here for testing different levels
 }
@@ -214,6 +221,8 @@ void Level_Finalize()
     Upgrade_Finalize();
     Tutorial_Finalize();
     UnloadAudio(g_AudioID_LevelStart);
+    UnloadAudio(g_AudioID_LevelFail);
+    UnloadAudio(g_AudioID_LevelClear);
     Texture_Release(g_PanelCapLeftID);
     Texture_Release(g_PanelCapMidID);
     Texture_Release(g_PanelCapRightID);
@@ -224,6 +233,8 @@ void Level_Finalize()
 
 void Level_Load(LevelType level)
 {
+    StopAudio(g_AudioID_LevelClear);
+    StopAudio(g_AudioID_LevelFail);
     g_CurrentLevel = level;
 
     const LevelLayout& layout = g_Levels[level];
@@ -316,6 +327,16 @@ void Level_Update(float delta_time)
 
     if (g_ShowResult)
     {
+        if (g_LevelFailRepeatTimer > 0.0f)
+        {
+            g_LevelFailRepeatTimer -= delta_time;
+            if (g_LevelFailRepeatTimer <= 0.0f)
+            {
+                PlayAudio(g_AudioID_LevelFail);
+                g_LevelFailRepeatTimer = -1.0f; // done -- don't fire again
+            }
+        }
+
         if (g_ReturnToMenuPending)
         {
             if (Fade_IsFinished())
@@ -371,10 +392,19 @@ void Level_Update(float delta_time)
     if (g_TimeRemaining <= 0.0f)
     {
         g_TimeRemaining = 0.0f;
-        g_Result = (SellBox_GetMoney() >= g_Levels[g_CurrentLevel].moneyQuota)
-            ? LevelResult_Cleared : LevelResult_Failed;
+        g_Result = (SellBox_GetMoney() >= g_Levels[g_CurrentLevel].moneyQuota)? LevelResult_Cleared : LevelResult_Failed;
         g_ShowResult = true;
         g_ResultSelectedButton = 0;
+
+        if (g_Result == LevelResult_Failed)
+        {
+            PlayAudio(g_AudioID_LevelFail);
+            g_LevelFailRepeatTimer = LEVEL_FAIL_REPEAT_DELAY;
+        }
+        else
+        {
+			PlayAudio(g_AudioID_LevelClear);
+        }
 
         if (Shop_IsOpen())
         {

@@ -20,6 +20,7 @@
 #include "water.h"
 #include "draw_queue.h"
 #include "fence.h"
+#include "Audio.h"
 
 #include <DirectXMath.h>
 using namespace DirectX;
@@ -57,6 +58,7 @@ static constexpr float FILL_BAR_INSET = 4.0f; // how far the fill sits inside th
 
 static int g_HighlightTextureID = TEXTURE_INVALID_ID;
 static float g_HighlightPulseTime = 0.0f;
+static int g_AudioID_PlayerDamage = -1;
 
 static XMFLOAT2 FacingToDirection(PlayerFacing facing)
 {
@@ -134,6 +136,8 @@ bool GamePlayer_TakeDamage()
 
 	g_KnockbackVelocity = { -g_LastMoveDirection.x * KNOCKBACK_SPEED, -g_LastMoveDirection.y * KNOCKBACK_SPEED };
 	g_KnockbackTimer = KNOCKBACK_DURATION;
+	
+	PlayAudio(g_AudioID_PlayerDamage);
 
 	return true;
 }
@@ -192,6 +196,7 @@ void GamePlayer_Initialize(float start_x, float start_y)
 	g_FillBarFrameTextureID = Texture_Load(L"assets/UI/FillBar_L.PNG", true);
 	g_FillBarFillTextureID = Texture_Load(L"assets/UI/Fill.PNG", true);
 	g_HighlightTextureID = Texture_Load(L"assets/white.png", false);
+	g_AudioID_PlayerDamage = LoadAudio("assets/SFX/Hit.wav");
 
 	g_Speed = PLAYER_DEFAULT_SPEED;
 
