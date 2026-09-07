@@ -27,6 +27,7 @@
 #include "draw_queue.h"
 #include "fence.h"
 #include "leaderboard.h"
+#include "game_player_interaction.h"
 
 #ifdef _DEBUG
 #include "collision_debug.h"
@@ -57,6 +58,7 @@ void Game_Initialize()
 	Inventory_Initialize();
 	Inventory_AddItem(ItemType_WaterPail, 1); //WaterPail for player to water plants
 	Inventory_AddItem(ItemType_CarrotSeed, 5); // starting seeds for testing
+	PlayerInteraction_Initialize();
 	Explosion_Initialize();
 	GameScore_Initialize(3); // Initialize game score with 3 digits
 	Font_Initialize();
@@ -92,6 +94,7 @@ void Game_Finalize()
 	Cloud_Finalize();
 	Shop_Finalize();
 	Inventory_Finalize();
+	PlayerInteraction_Finalize();
 	GamePlayer_BulletFinalize();
 	EnemyFinalize();
 	Explosion_Finalize();

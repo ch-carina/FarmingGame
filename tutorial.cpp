@@ -136,7 +136,15 @@ void Tutorial_Update(float delta_time)
         }
         else if (g_EnemySpawned && EnemyGetCount() == 0)
         {
-            AdvanceStep(TutorialStep_Water);
+            if (plot && plot->occupied)
+            {
+				AdvanceStep(TutorialStep_Water);
+            }
+            else
+            {
+				Inventory_AddItem(ItemType_CarrotSeed, 1);
+				AdvanceStep(TutorialStep_Plant);
+            }
         }
         break;
     }

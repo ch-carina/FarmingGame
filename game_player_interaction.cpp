@@ -6,6 +6,7 @@
 #include "input_keyboard.h"
 #include "upgrade.h"
 #include "fence.h"
+#include "Audio.h"
 
 static constexpr ItemType g_CropHarvestItem[CropType_MAX] = {
 	ItemType_Carrot,    // CropType_Carrot
@@ -73,7 +74,17 @@ static CropType pendingHarvestType = CropType_Carrot;
 static float fenceTimer = 0.0f;
 static int currentFenceSlotIndex = -1;
 
+static int g_AudioID_Watering = -1;
 
+void PlayerInteraction_Initialize()
+{
+	g_AudioID_Watering = LoadAudio("assets/SFX/Water.wav");
+}
+
+void PlayerInteraction_Finalize()
+{
+	UnloadAudio(g_AudioID_Watering);
+}
 
 void PlayerInteraction_UpdateHarvestTimer(float delta_time)
 {
@@ -187,11 +198,16 @@ void PlayerInteraction_HandleUse(float delta_time)
 		else if (needsWater)
 		{
 			Player_ChangeState(Watering);
+			if (wateringTimer<=0.0f)
+			{
+				PlayAudio(g_AudioID_Watering);
+			}
 			wateringTimer += delta_time;
 
 			if (wateringTimer >= WATER_TIME)
 			{
 				Crop_Water(plot->cropIndex);
+				StopAudio(g_AudioID_Watering);
 
 				if (Upgrade_IsWaterAreaUnlocked())
 				{
@@ -311,4 +327,12 @@ void PlayerInteraction_ResetUpgrades()
 	PLANT_TIME = BASE_PLANT_TIME;
 	WATER_TIME = BASE_WATER_TIME;
 	HARVEST_DISPLAY_TIME = BASE_HARVEST_DISPLAY_TIME;
+}
+
+void PlayerInteraction_CheckEarlyRelease()
+{
+	if (InputKeyboard_IsRelease(KK_E))
+	{
+		StopAudio(g_AudioID_Watering);
+	}
 }

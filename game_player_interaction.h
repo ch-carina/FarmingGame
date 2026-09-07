@@ -4,6 +4,9 @@
 
 #include "inventory.h"
 
+void PlayerInteraction_Initialize();
+void PlayerInteraction_Finalize();
+
 void PlayerInteraction_UpdateHarvestTimer(float delta_time);
 void PlayerInteraction_HandleUse(float delta_time);
 
@@ -18,5 +21,7 @@ bool PlayerInteraction_GetHoverTile(float& outX, float& outY);
 void PlayerInteraction_ApplyInteractionSpeedBoost();
 
 void PlayerInteraction_ResetUpgrades();
+
+void PlayerInteraction_CheckEarlyRelease();
 
 #endif

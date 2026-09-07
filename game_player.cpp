@@ -281,6 +281,7 @@ void GamePlayer_Update(float delta_time)
 	}
 
 	PlayerInteraction_UpdateHarvestTimer(delta_time);
+	PlayerInteraction_CheckEarlyRelease();
 
 	if (InputKeyboard_IsPress(KK_W)) direction.y = -1.0f;
 	if (InputKeyboard_IsPress(KK_A)) direction.x = -1.0f;
