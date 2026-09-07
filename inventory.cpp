@@ -239,12 +239,6 @@ bool Inventory_RemoveItem(ItemType item, int amount)
 	return true;
 }
 
-int Inventory_GetItemTexture(ItemType)
-{
-	return 0;
-}
-
-
 int Inventory_GetItemCount(ItemType item)
 {
 	int total = 0;

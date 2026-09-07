@@ -35,13 +35,13 @@ static constexpr float BOB_SPEED = 6.0f;
 static constexpr float LETTER_BOB_PHASE = 0.6f;
 
 static int g_LoopsCompleted = 0;
-static constexpr int LOOPS_BEFORE_FINISH = 2;
+static constexpr int LOOPS_BEFORE_FINISH = 1;
 
 static FadeType g_FadeType{};
 
 void Fade_Initialize()
 {
-	g_TextureID_White = Texture_Load(L"assets/white.png");
+	g_TextureID_White = Texture_Load(L"assets/fade_white.png");
 	g_TextureID_WalkR = Texture_Load(L"assets/MC/MC_WalkR.png", true);
 	g_AccumulatedTime = 0.0f;
 	g_FadeTime = 0.0f; 
@@ -94,6 +94,7 @@ void Fade_Update(float delta_time)
 void Fade_Draw()
 {
 	if (g_FadeTime <= 0.0f || g_FadeColor.w <= 0.0f) { return; }
+
 	Sprite_Draw(g_TextureID_White, 0.0f, 0.0f, (float)SCREEN_WIDTH, (float)SCREEN_HEIGHT, g_FadeColor);
 
 	int column = g_WalkFrame % WALK_COLUMNS;

@@ -27,8 +27,6 @@ static bool g_ShowCoinPopup = false;
 static float g_CoinPopupTimer = 0.0f;
 static int g_PendingCoinAmount = 0;
 
-static constexpr float SELL_BOX_BLOCK_HEIGHT_RATIO = 0.6f;
-
 static CollisionBox g_SellBoxBlockingBox;
 static constexpr float SELL_BOX_WALKABLE_FRONT = 50.0f; 
 static constexpr float SELL_BOX_INTERACT_MARGIN = 12.0f;

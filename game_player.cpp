@@ -409,8 +409,7 @@ void GamePlayer_Update(float delta_time)
 		float feetOffsetY = PLAYER_HEIGHT - PLAYER_WIDTH * 0.5f;
 
 		CollisionCircle currentFeet{ { g_Position.x + feetRadius, g_Position.y + feetOffsetY }, feetRadius };
-		int stuckInFence = Fence_GetBlockingSlot(currentFeet); // already overlapping this one -- let them walk out of it
-
+		int stuckInFence = Fence_GetBlockingSlot(currentFeet); 
 		float candidateX = g_Position.x + moveDelta.x;
 		CollisionCircle feetAtX{ { candidateX + feetRadius, g_Position.y + feetOffsetY }, feetRadius };
 		if (!Water_IsBlocked(feetAtX) && !Shop_IsBlocking(feetAtX) && !SellBox_IsBlocking(feetAtX) &&

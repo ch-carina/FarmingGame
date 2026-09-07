@@ -325,6 +325,7 @@ void Menu_Initialize()
 	g_PanelCapMidID = Texture_Load(L"assets/UI/UI_M.PNG", true);
 	g_PanelCapRightID = Texture_Load(L"assets/UI/UI_R.PNG", true);
 	g_PanelCapWidth = (float)Texture_GetWidth(g_PanelCapLeftID);
+	g_PanelBackingTextureID = Texture_Load(L"assets/white.png", false);
 
 	Ground_Initialize();
 	Ground_LoadLayout(nullptr, 0); // no plot regions in the menu, so every tile gets a random ground tile
@@ -347,7 +348,6 @@ void Menu_Initialize()
 
 void Menu_Finalize()
 {
-	Texture_Release(g_TextureID_MenuTitle);
 	Texture_Release(g_SlotCapLeftID);
 	Texture_Release(g_SlotCapMidID);
 	Texture_Release(g_SlotCapRightID);
@@ -357,10 +357,6 @@ void Menu_Finalize()
 	Texture_Release(g_PanelBackingTextureID);
 	Texture_Release(g_RabbitRunTextureID);
 	Texture_Release(g_RabbitNibbleTextureID);
-	Texture_Release(g_PanelCapLeftID);
-	Texture_Release(g_PanelCapMidID);
-	Texture_Release(g_PanelCapRightID);
-	Texture_Release(g_PanelBackingTextureID);
 	Font_Finalize();
 	UnloadAudio(g_AudioID_MenuMove);
 	UnloadAudio(g_AudioID_MenuSelect);
@@ -414,6 +410,7 @@ void Menu_Draw()
 	Ground_Draw();
 	DrawMenuRabbits();
 	float titleW = (float)Texture_GetWidth(g_TextureID_MenuTitle);
+	float titleH = (float)Texture_GetHeight(g_TextureID_MenuTitle);
 	Sprite_Draw(g_TextureID_MenuTitle, SCREEN_WIDTH * 0.5f - titleW * 0.5f, TITLE_TOP_MARGIN);
 
 	if (g_MenuState == kMenuMain)

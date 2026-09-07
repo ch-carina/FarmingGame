@@ -82,7 +82,6 @@ void EnemyCreate(EnemyType type, EnemySpawnSide side, float targetX, float targe
 
 	if (type == EnemyType_Mole)
 	{
-		// Mole pops up in place -- no travel--in
 		e.x = targetX;
 		e.y = targetY;
 		e.dirX = 0.0f;
