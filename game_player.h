@@ -55,5 +55,6 @@ CollisionCircle GamePlayer_GetCollisionCircle();
 bool GamePlayer_TakeDamage(); // returns true if damage was actually applied
 
 void GamePlayer_DrawPopup();
+DirectX::XMFLOAT2 GamePlayer_GetHarvestPopupCenter();
 
 #endif GAME_PLAYER_H

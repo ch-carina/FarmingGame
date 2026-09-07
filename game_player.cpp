@@ -159,6 +159,12 @@ static void DrawInteractionHighlight()
 	Sprite_Draw(g_HighlightTextureID, tileX + PLOT_SIZE - BORDER_THICKNESS, tileY, BORDER_THICKNESS, PLOT_SIZE, glowColor); // right
 }
 
+DirectX::XMFLOAT2 GamePlayer_GetHarvestPopupCenter()
+{
+	constexpr float POPUP_SIZE = 48.0f;
+	return { g_Position.x + PLAYER_WIDTH * 0.5f, g_Position.y - POPUP_SIZE * 0.5f };
+}
+
 void GamePlayer_DrawPopup()
 {
 	DrawInteractionHighlight();
@@ -181,8 +187,9 @@ void GamePlayer_DrawPopup()
 	if (PlayerInteraction_IsHarvesting())
 	{
 		constexpr float POPUP_SIZE = 48.0f;
-		float popupX = g_Position.x + (PLAYER_WIDTH - POPUP_SIZE) * 0.5f;
-		float popupY = g_Position.y - POPUP_SIZE;
+		XMFLOAT2 popupCenter = GamePlayer_GetHarvestPopupCenter();
+		float popupX = popupCenter.x - POPUP_SIZE * 0.5f;
+		float popupY = popupCenter.y - POPUP_SIZE * 0.5f;
 
 		Sprite_Draw(Inventory_GetIconTexture(PlayerInteraction_GetHarvestPopupItem()), popupX, popupY, POPUP_SIZE, POPUP_SIZE,
 			0, 0, 96, 96, 0.0f);

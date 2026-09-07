@@ -207,6 +207,7 @@ xcopy "$(ProjectDir)assets" "$(OutDir)assets" /E /I /Y</Command>
     <ClCompile Include="sellBox.cpp" />
     <ClCompile Include="shader.cpp" />
     <ClCompile Include="shop.cpp" />
+    <ClCompile Include="sparkle.cpp" />
     <ClCompile Include="spotlight.cpp" />
     <ClCompile Include="sprite.cpp" />
     <ClCompile Include="system_timer.cpp" />
@@ -259,6 +260,7 @@ xcopy "$(ProjectDir)assets" "$(OutDir)assets" /E /I /Y</Command>
     <ClInclude Include="sellBox.h" />
     <ClInclude Include="shader.h" />
     <ClInclude Include="shop.h" />
+    <ClInclude Include="sparkle.h" />
     <ClInclude Include="spotlight.h" />
     <ClInclude Include="sprite.h" />
     <ClInclude Include="system_timer.h" />

@@ -7,6 +7,7 @@
 #include "upgrade.h"
 #include "fence.h"
 #include "Audio.h"
+#include "sparkle.h"
 
 static constexpr ItemType g_CropHarvestItem[CropType_MAX] = {
 	ItemType_Carrot,    // CropType_Carrot
@@ -194,6 +195,12 @@ void PlayerInteraction_HandleUse(float delta_time)
 			harvestTimer = 0.0f;
 			currentPlotIndex = -1;
 			Player_ChangeState(Harvesting);
+
+			if (wasWatered)
+			{
+				DirectX::XMFLOAT2 popupCenter = GamePlayer_GetHarvestPopupCenter();
+				Sparkle_Emit(SparkleType_Gold, popupCenter.x, popupCenter.y);
+			}
 		}
 		else if (needsWater)
 		{

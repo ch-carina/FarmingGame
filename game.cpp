@@ -27,6 +27,7 @@
 #include "draw_queue.h"
 #include "fence.h"
 #include "leaderboard.h"
+#include "sparkle.h"
 #include "game_player_interaction.h"
 
 #ifdef _DEBUG
@@ -60,6 +61,7 @@ void Game_Initialize()
 	Inventory_AddItem(ItemType_CarrotSeed, 5); // starting seeds for testing
 	PlayerInteraction_Initialize();
 	Explosion_Initialize();
+	Sparkle_Initialize();	
 	GameScore_Initialize(3); // Initialize game score with 3 digits
 	Font_Initialize();
 	SellBox_Initialize();
@@ -98,6 +100,7 @@ void Game_Finalize()
 	GamePlayer_BulletFinalize();
 	EnemyFinalize();
 	Explosion_Finalize();
+	Sparkle_Finalize();
 	GameScore_Finalize();
 	Font_Finalize();
 	SellBox_Finalize();
@@ -124,6 +127,7 @@ void Game_Update(float delta_time)
 	GamePlayer_BulletUpdate(delta_time);
 	EnemyUpdate(delta_time);
 	Explosion_Update(delta_time);
+	Sparkle_Update(delta_time);
 
 
 	// Collision detection between player bullets and enemies
@@ -161,6 +165,7 @@ static void DrawWorld()
 	GamePlayer_BulletDraw();
 	EnemyDraw();
 	SellBox_Draw();
+	Sparkle_Draw();
 	DrawQueue_Flush();
 
 	GamePlayer_DrawPopup();
