@@ -31,6 +31,7 @@ static constexpr float SELL_BOX_BLOCK_HEIGHT_RATIO = 0.6f;
 
 static CollisionBox g_SellBoxBlockingBox;
 static constexpr float SELL_BOX_WALKABLE_FRONT = 50.0f; 
+static constexpr float SELL_BOX_INTERACT_MARGIN = 12.0f;
 static int GetSellPrice(ItemType item)
 {
 	switch (item)
@@ -96,6 +97,13 @@ void SellBox_Finalize()
 
 bool SellBox_IsPlayerNear()
 {
+	CollisionBox interactBox
+	{
+		g_SellBoxCollision.width + SELL_BOX_INTERACT_MARGIN * 2.0f,
+		g_SellBoxCollision.height + SELL_BOX_INTERACT_MARGIN * 2.0f,
+		g_SellBoxCollision.x - SELL_BOX_INTERACT_MARGIN,
+		g_SellBoxCollision.y - SELL_BOX_INTERACT_MARGIN
+	};
 	return CircleVsBox(GamePlayer_GetCollisionCircle(), g_SellBoxCollision);
 }
 

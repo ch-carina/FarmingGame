@@ -179,14 +179,14 @@ static constexpr LevelLayout g_Levels[Level_MAX] =
     { g_Level3Regions, 4 , 210.0f, g_Level3ShopItems, 8, 650, g_Level3WaterRegions, 1 },
 };
 
-static void Draw3Slice(int leftID, int midID, int rightID, float capWidth, float x, float y, float width, float height)
+static void Draw3Slice(int leftID, int midID, int rightID, float capWidth, float x, float y, float width, float height, const DirectX::XMFLOAT4& tint = { 1.0f, 1.0f, 1.0f, 1.0f })
 {
     float midWidth = width - capWidth * 2.0f;
     if (midWidth < 0.0f) midWidth = 0.0f;
 
-    Sprite_Draw(leftID, x, y, capWidth, height);
-    Sprite_Draw(midID, x + capWidth, y, midWidth, height);
-    Sprite_Draw(rightID, x + capWidth + midWidth, y, capWidth, height);
+    Sprite_Draw(leftID, x, y, capWidth, height, tint);
+    Sprite_Draw(midID, x + capWidth, y, midWidth, height, tint);
+    Sprite_Draw(rightID, x + capWidth + midWidth, y, capWidth, height, tint);
 }
 
 const LevelLayout& Level_GetCurrentLayout()
@@ -351,8 +351,17 @@ void Level_Update(float delta_time)
 
         if (!finalLevelCleared)
         {
-            if (InputKeyboard_IsTrigger(KK_LEFT) || InputKeyboard_IsTrigger(KK_A))  g_ResultSelectedButton = 0;
-            if (InputKeyboard_IsTrigger(KK_RIGHT) || InputKeyboard_IsTrigger(KK_D)) g_ResultSelectedButton = 1;
+            int buttonCount = (g_Result == LevelResult_Cleared) ? 3 : 2;
+            if (InputKeyboard_IsTrigger(KK_LEFT) || InputKeyboard_IsTrigger(KK_A))
+            {
+                g_ResultSelectedButton--;
+                if (g_ResultSelectedButton < 0) g_ResultSelectedButton = 0;
+            }
+            if (InputKeyboard_IsTrigger(KK_RIGHT) || InputKeyboard_IsTrigger(KK_D))
+            {
+                g_ResultSelectedButton++;
+                if (g_ResultSelectedButton > buttonCount-1) g_ResultSelectedButton = buttonCount - 1;
+            }
         }
 
         if (InputKeyboard_IsTrigger(KK_ENTER))
@@ -363,29 +372,49 @@ void Level_Update(float delta_time)
                 Fade_Start(FadeType::kOut, 1.0f, { 0.0f,0.0f,0.0f,0.0f });
                 g_ReturnToMenuPending = true;
             }
-            else if (g_ResultSelectedButton == 1)
-            {
-
-                Fade_Start(FadeType::kOut, 1.0f, { 0.0f,0.0f,0.0f,0.0f });
-                g_ReturnToMenuPending = true;
-            }
             else if (g_Result == LevelResult_Failed)
             {
-                SellBox_SetMoney(g_CheckpointMoney);
-                Inventory_SetSnapshot(g_CheckpointInventory);
-                Level_Load(g_CurrentLevel);
+                if (g_ResultSelectedButton == 1)
+                {
+
+                    Fade_Start(FadeType::kOut, 1.0f, { 0.0f,0.0f,0.0f,0.0f });
+                    g_ReturnToMenuPending = true;
+                }
+                else
+                {
+                    SellBox_SetMoney(g_CheckpointMoney);
+                    Inventory_SetSnapshot(g_CheckpointInventory);
+                    Level_Load(g_CurrentLevel);
+                }
             }
             else
             {
-                if (!Upgrade_TryBeginChoice(g_CurrentLevel))
+                // buttons: 0 = Retry, 1 = Next Level, 2 = Quit
+                if (g_ResultSelectedButton == 2)
                 {
-                    Level_Load((LevelType)(g_CurrentLevel + 1));
-                    Level_SetCheckpoint();
+
+                    Fade_Start(FadeType::kOut, 1.0f, { 0.0f,0.0f,0.0f,0.0f });
+                    g_ReturnToMenuPending = true;
                 }
-                // else: the branch above finishes the advance once the player picks
+                else if (g_ResultSelectedButton == 0)
+                {
+                    SellBox_SetMoney(g_CheckpointMoney);
+                    Inventory_SetSnapshot(g_CheckpointInventory);
+                    Level_Load(g_CurrentLevel);
+                }
+                else 
+                {
+                    if (!Upgrade_TryBeginChoice(g_CurrentLevel))
+                    {
+                        Level_Load((LevelType)(g_CurrentLevel + 1));
+                        Level_SetCheckpoint();
+                    }
+                    // else: the branch above finishes the advance once the player picks
+                }
             }
             return;
         }
+        return;
     }
 
     g_TimeRemaining -= delta_time;
@@ -480,15 +509,13 @@ static void DrawCountdownPanel()
         panelY + COUNTDOWN_PANEL_HEIGHT - countdownSize.y - 50.0f, COUNTDOWN_SCALE);
 }
 
-static void DrawResultButtons(float panelX, float panelY, const char* primaryLabel, const char* quitLabel)
+static void DrawResultButtons(float panelX, float panelY, const char** labels, int buttonCount)
 {
-    const char* labels[2] = { primaryLabel, quitLabel };
-
-    float blockWidth = RESULT_BUTTON_WIDTH * 2.0f + RESULT_BUTTON_GAP;
+    float blockWidth = RESULT_BUTTON_WIDTH * buttonCount + RESULT_BUTTON_GAP * (buttonCount - 1);
     float blockLeft = panelX + (RESULT_PANEL_WIDTH - blockWidth) * 0.5f;
-    float blockY = panelY + RESULT_PANEL_HEIGHT - RESULT_BUTTON_HEIGHT - 30.0f;
+    float blockY = panelY + RESULT_PANEL_HEIGHT - RESULT_BUTTON_HEIGHT - 40.0f;
 
-    for (int i = 0; i < 2; i++)
+    for (int i = 0; i < buttonCount; i++)
     {
         bool selected = (i == g_ResultSelectedButton);
         float scale = selected ? RESULT_BUTTON_SELECT_SCALE : 1.0f;
@@ -499,12 +526,19 @@ static void DrawResultButtons(float panelX, float panelY, const char* primaryLab
         float btnX = baseX - (btnW - RESULT_BUTTON_WIDTH) * 0.5f;
         float btnY = blockY - (btnH - RESULT_BUTTON_HEIGHT) * 0.5f;
 
+        DirectX::XMFLOAT4 tint = selected
+            ? DirectX::XMFLOAT4{ 1.0f, 0.85f, 0.2f, 1.0f }
+        : DirectX::XMFLOAT4{ 1.0f, 1.0f, 1.0f, 1.0f };
+
         Draw3Slice(g_ButtonCapLeftID, g_ButtonCapMidID, g_ButtonCapRightID, g_ButtonCapWidth,
-            btnX, btnY, btnW, btnH);
+            btnX, btnY, btnW, btnH,tint);
+
+        char labelBuf[32];
+        snprintf(labelBuf, sizeof(labelBuf), selected ? "> %s <" : "%s", labels[i]);
 
         float textScale = RESULT_BUTTON_TEXT_SCALE * scale;
         DirectX::XMFLOAT2 textSize = Font_MeasureText(labels[i], textScale);
-        Font_Print(labels[i], btnX + (btnW - textSize.x) * 0.5f, btnY + (btnH - textSize.y) * 0.5f, textScale);
+        Font_Print(labels[i], btnX + (btnW - textSize.x) * 0.5f, btnY + (btnH - textSize.y) * 0.5f, textScale,tint);
     }
 }
 
@@ -552,8 +586,16 @@ void Level_DrawResult()
         return;
     }
 
-    const char* primaryLabel = (g_Result == LevelResult_Failed) ? "Retry" : "Continue";
-    DrawResultButtons(panelX, panelY, primaryLabel, "Quit");
+    if (g_Result == LevelResult_Failed)
+    {
+        const char* labels[2] = { "Retry", "Quit" };
+        DrawResultButtons(panelX, panelY, labels, 2);
+    }
+    else
+    {
+        const char* labels[3] = { "Retry", "Next Level", "Quit" };
+        DrawResultButtons(panelX, panelY, labels, 3);
+    }
 }
 
 LevelType Level_GetCurrent()

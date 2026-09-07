@@ -18,10 +18,10 @@ static constexpr ItemType g_CropHarvestItem[CropType_MAX] = {
 
 static constexpr ItemType g_CropHarvestItemGold[CropType_MAX] = {
 	ItemType_CarrotGold, // CropType_Carrot
-	ItemType_Wheat,
-	ItemType_Lettuce,
-	ItemType_Corn,
-	ItemType_Blueberry,
+	ItemType_WheatGold,
+	ItemType_LettuceGold,
+	ItemType_CornGold,
+	ItemType_BlueberryGold,
 };
 
 static constexpr ItemType g_SeedForCrop[CropType_MAX] = {

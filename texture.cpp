@@ -21,6 +21,7 @@ struct Texture
 	unsigned int height{ 0 }; // 高さ
 	ID3D11Resource* pTexture{ nullptr }; // テクスチャリソース
 	ID3D11ShaderResourceView* pTextureView{ nullptr }; // シェーダーリソースビュー
+	int refCount{ 0 }; // 参照カウント
 };
 // テクスチャ管理用の配列
 static Texture g_Textures[TEXTURE_MAX]{};
@@ -51,6 +52,7 @@ int Texture_Load(const wchar_t* pFileName, bool bMipMap)
 		if (!g_Textures[i].pTexture) continue;
 		// 同じファイル名が見つかったら、そのIDを返す（新しく作らない）
 		if (g_Textures[i].filename == pFileName) {
+			g_Textures[i].refCount++;
 			return i;
 		}
 	}
@@ -82,6 +84,7 @@ int Texture_Load(const wchar_t* pFileName, bool bMipMap)
 		g_Textures[i].height = t2desc.Height;
 		// ファイル名を記録
 		g_Textures[i].filename = pFileName;
+		g_Textures[i].refCount = 1;
 		// 登録したID（配列のインデックス）を返す
 		return i;
 	}
@@ -94,19 +97,19 @@ void Texture_Release(int texture_id)
 		return;
 	}
 	Texture& t = g_Textures[texture_id];
+	if (!t.pTexture) return; 
+
 	SAFE_RELEASE(t.pTextureView);
 	SAFE_RELEASE(t.pTexture);
 	t.filename.clear();
 	t.width = 0;
 	t.height = 0;
+	t.refCount = 0;
 
 }
 
 void Texture_Release(const int* pTextureIDs, int count)
 {
-	if (!pTextureIDs || count <= 0) {
-		return;
-	}
 	for (int i = 0; i < count; i++) {
 		if (pTextureIDs[i] < 0 || pTextureIDs[i] >= TEXTURE_MAX) {
 			continue;
@@ -118,7 +121,9 @@ void Texture_Release(const int* pTextureIDs, int count)
 
 void Texture_AllRelease()
 {
-	for (int i = 0; i < TEXTURE_MAX; i++) {
+	for (int i = 0; i < TEXTURE_MAX; i++) 
+	{
+		g_Textures[i].refCount = 1; // force a real release even if something still "owns" it
 		Texture_Release(i);
 	}
 
