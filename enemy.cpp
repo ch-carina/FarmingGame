@@ -116,9 +116,6 @@ void EnemyCreate(EnemyType type, EnemySpawnSide side, float targetX, float targe
 		switch (type)
 		{
 		case EnemyType_Rabbit: e.speed = 220.0f; break;
-		case EnemyType_Crow:   e.speed = 260.0f; break;
-		case EnemyType_Deer:   e.speed = 180.0f; break;
-		case EnemyType_Bear:   e.speed = 120.0f; break;
 		}
 
 		e.state = EnemyState_Spawn;

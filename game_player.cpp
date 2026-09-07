@@ -322,7 +322,13 @@ void GamePlayer_Update(float delta_time)
 	}
 	else if (InputKeyboard_IsPress(KK_SPACE)) // as long as you hold down the space key, shoot a bullet
 	{
-		Player_ChangeState(Shooting);
+		switch (g_Player.facing)
+		{
+		case Left:  Player_ChangeState(ShootingL); break;
+		case Right: Player_ChangeState(ShootingR); break;
+		case Up:    Player_ChangeState(WalkingB);  break; 
+		default:    Player_ChangeState(Shooting);  break;
+		}
 
 		XMFLOAT2 shootDir = FacingToAimDirection(g_Player.facing);;
 		float spawnX = g_Position.x + (PLAYER_WIDTH * 0.5f) + shootDir.x * PLAYER_WIDTH * 0.5f;

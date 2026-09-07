@@ -12,6 +12,8 @@ enum PlayerAnimID
 	g_AnimID_PlayerWalkR,
 	g_AnimID_PlayerPlant,
 	g_AnimID_PlayerShoot,
+	g_AnimID_PlayerShootL,
+	g_AnimID_PlayerShootR,
 	g_AnimID_PlayerDamage,
 	g_AnimID_PlayerTada,
 	g_AnimID_PlayerWater,
@@ -42,6 +44,8 @@ static AnimInfo g_PlayerAnims[PlayerAnim_MAX] =
 	{g_AnimID_PlayerWalkR, 48.0f,72.0f,0,8,4,0.15f },//Walking right Animation 
 	{g_AnimID_PlayerPlant, 48.0f,72.0f,0,6,3,0.15f },//Planting Animation 
 	{g_AnimID_PlayerShoot, 48.0f,72.0f,0,8,4,0.15f },//Shooting Animation 
+	{g_AnimID_PlayerShootL, 48.0f,72.0f,0,6,3,0.15f },//Shooting Animation 
+	{g_AnimID_PlayerShootR, 48.0f,72.0f,0,6,3,0.15f },//Shooting Animation 
 	{g_AnimID_PlayerDamage, 48.0f,72.0f,0,8,4,0.15f },//Damaged Animation 
 	{g_AnimID_PlayerTada, 48.0f,72.0f,0,8,4,0.15f },//Tada Animation
 	{g_AnimID_PlayerWater, 48.0f,72.0f,0,8,4,0.15f } //Watering Animation
@@ -58,6 +62,8 @@ void PlayerAnimation_Initialize()
 	g_AnimID[g_AnimID_PlayerWalkR] = Texture_Load(L"assets/MC/MC_WalkR.png", true);
 	g_AnimID[g_AnimID_PlayerPlant] = Texture_Load(L"assets/MC/MC_Plant.png", true);
 	g_AnimID[g_AnimID_PlayerShoot] = Texture_Load(L"assets/MC/MC_Shoot.png", true);
+	g_AnimID[g_AnimID_PlayerShootL] = Texture_Load(L"assets/MC/MC_ShootL.png", true);
+	g_AnimID[g_AnimID_PlayerShootR] = Texture_Load(L"assets/MC/MC_ShootR.png", true);
 	g_AnimID[g_AnimID_PlayerDamage] = Texture_Load(L"assets/MC/MC_Damage.png", true);
 	g_AnimID[g_AnimID_PlayerTada] = Texture_Load(L"assets/MC/MC_Tada.png", true);
 	g_AnimID[g_AnimID_PlayerWater] = Texture_Load(L"assets/MC/MC_Water.png", true);

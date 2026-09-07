@@ -40,16 +40,6 @@ void EnemyAnimation_Initialize()
         ENEMY_DRAW_SIZE * 0.4f
     };
 
-    g_EnemySpriteInfo[EnemyType_Bear].animation[EnemyAnim_Run] =
-    {
-        Texture_Load(L"assets/Animal/Rabbit_Nibble.png", true),0,32,0,7,10.15f,4
-    };
-    
-    g_EnemySpriteInfo[EnemyType_Bear].animation[EnemyAnim_Eating] =
-    {
-        Texture_Load(L"assets/Animal/Rabbit_JumpL.png", true),32,32,0,9,0.15f,5
-    };
-
     g_EnemySpriteInfo[EnemyType_Mole].animation[EnemyAnim_Burrow] =
     {
         Texture_Load(L"assets/Animal/Mole_Dirt.png", true), 96,96,0,8,0.15f,4

@@ -12,6 +12,8 @@ enum PlayerAnimState {
 	WalkingR,
 	Planting,
 	Shooting,
+	ShootingL,
+	ShootingR,
 	Damaged,
 	Harvesting,
 	Watering,

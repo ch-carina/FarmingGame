@@ -14,9 +14,6 @@
 enum EnemyType //create different types of enemies 
 {
 	EnemyType_Rabbit, //0
-	EnemyType_Crow,//1
-	EnemyType_Deer, //2 
-	EnemyType_Bear,
 	EnemyType_Mole, 
 	EnemyType_MAX
 };

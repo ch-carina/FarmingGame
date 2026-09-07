@@ -45,5 +45,4 @@ AnimInfo EnemyAnimation_GetInfo(EnemyType type, EnemyAnimState state);
 
 const EnemySpriteInfo& EnemyAnimation_GetSpriteInfo(EnemyType type);
 
-
 #endif //ENEMY_ANIMATION_H
