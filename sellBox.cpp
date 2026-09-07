@@ -53,9 +53,9 @@ static int GetSellPrice(ItemType item)
 	case ItemType_CornGold:
 		return 35;
 	case ItemType_Blueberry:
-		return 30;
+		return 25;
 	case ItemType_BlueberryGold:
-		return 35;
+		return 30;
 	default:
 		return 0;
 	}

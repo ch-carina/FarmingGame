@@ -61,7 +61,7 @@ void Game_Initialize()
 	PlayerInteraction_Initialize();
 	Explosion_Initialize();
 	Sparkle_Initialize();	
-	GameScore_Initialize(3); // Initialize game score with 3 digits
+	GameScore_Initialize(4); // Initialize game score with 3 digits
 	Font_Initialize();
 	SellBox_Initialize();
 	Level_SetCheckpoint(); // Level 1's baseline: 100 coin + starting inventory
@@ -258,4 +258,14 @@ void checkPlayerBulletsvsEnemies()
 			}
 		}
 	}
+}
+
+void Game_StopBGM()
+{
+	StopAudio(g_AudioID_BGM);
+}
+
+void Game_ResumeBGM()
+{
+	PlayAudio(g_AudioID_BGM, true);
 }

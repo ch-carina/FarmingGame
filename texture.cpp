@@ -99,6 +99,9 @@ void Texture_Release(int texture_id)
 	Texture& t = g_Textures[texture_id];
 	if (!t.pTexture) return; 
 
+	t.refCount--;
+	if (t.refCount > 0) return;
+
 	SAFE_RELEASE(t.pTextureView);
 	SAFE_RELEASE(t.pTexture);
 	t.filename.clear();

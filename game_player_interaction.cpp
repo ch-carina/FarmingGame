@@ -38,7 +38,7 @@ static constexpr int g_CropHarvestYield[CropType_MAX] = {
 	1, // CropType_Wheat
 	1, // CropType_Lettuce
 	3, // CropType_Corn
-	5, // CropType_Blueberry
+	4, // CropType_Blueberry
 };
 
 static bool CropForSeed(ItemType item, CropType& outType)

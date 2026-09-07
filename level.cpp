@@ -9,7 +9,7 @@
                                    Author: Carina Chao
                                    Date: 2026/07/23
  ----------------------------------------------------*/
-
+#include "game.h"
 #include "level.h"
 #include "crop_plot.h"
 #include "ground.h"
@@ -318,7 +318,7 @@ void Level_Update(float delta_time)
         Upgrade_Update(delta_time);
         if (!Upgrade_IsChoiceActive())
         {
-            // player just confirmed a choice -- finish the advance we deferred
+            Game_ResumeBGM();
             Level_Load((LevelType)(g_CurrentLevel + 1));
             Level_SetCheckpoint();
         }
@@ -398,6 +398,7 @@ void Level_Update(float delta_time)
                 }
                 else if (g_ResultSelectedButton == 0)
                 {
+                    Game_ResumeBGM();
                     SellBox_SetMoney(g_CheckpointMoney);
                     Inventory_SetSnapshot(g_CheckpointInventory);
                     Level_Load(g_CurrentLevel);
@@ -406,6 +407,7 @@ void Level_Update(float delta_time)
                 {
                     if (!Upgrade_TryBeginChoice(g_CurrentLevel))
                     {
+                        Game_ResumeBGM();
                         Level_Load((LevelType)(g_CurrentLevel + 1));
                         Level_SetCheckpoint();
                     }
@@ -433,6 +435,7 @@ void Level_Update(float delta_time)
         else
         {
 			PlayAudio(g_AudioID_LevelClear);
+            Game_StopBGM();
         }
 
         if (Shop_IsOpen())
@@ -583,6 +586,12 @@ void Level_DrawResult()
         const char* prompt = "ALL LEVELS COMPLETE";
         DirectX::XMFLOAT2 promptSize = Font_MeasureText(prompt, PROMPT_SCALE);
         Font_Print(prompt, panelX + (RESULT_PANEL_WIDTH - promptSize.x) * 0.5f, panelY + RESULT_PANEL_HEIGHT - 70.0f, PROMPT_SCALE);
+
+        constexpr float MONEY_SCALE = 2.4f;
+        char moneyStr[32];
+        snprintf(moneyStr, sizeof(moneyStr), "TOTAL EARNED: %d", SellBox_GetMoney());
+        DirectX::XMFLOAT2 moneySize = Font_MeasureText(moneyStr, MONEY_SCALE);
+        Font_Print(moneyStr, panelX + (RESULT_PANEL_WIDTH - moneySize.x) * 0.5f, panelY + RESULT_PANEL_HEIGHT - 30.0f, MONEY_SCALE);
         return;
     }
 

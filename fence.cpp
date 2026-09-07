@@ -24,6 +24,7 @@ enum FenceSlotRole
     FenceSlot_RightBottomEnd,
     FenceSlot_TopLeftEnd,  
     FenceSlot_TopRightEnd,
+    FenceSlot_MiddleDown,
     FenceSlot_MAX
 };
 
@@ -62,6 +63,7 @@ void Fence_Initialize()
     g_FenceTextures[FenceSlot_RightBottomEnd] = Texture_Load(L"assets/GroundTiles/Fence_Pole.PNG", true);
     g_FenceTextures[FenceSlot_TopLeftEnd] = Texture_Load(L"assets/GroundTiles/Fence_L.PNG", true);
     g_FenceTextures[FenceSlot_TopRightEnd] = Texture_Load(L"assets/GroundTiles/Fence_R.PNG", true);
+    g_FenceTextures[FenceSlot_MiddleDown] = Texture_Load(L"assets/GroundTiles/Fence_MD.png", true);
 
     g_FenceSlotCount = 0;
 }
@@ -130,6 +132,16 @@ void Fence_LoadRegions(const PlotRegion regions[], int regionCount)
     }
 }
 
+static bool HasOtherSlotAt(int selfIndex, float x, float y)
+{
+	for (int i = 0; i < g_FenceSlotCount; i++)
+	{
+		if (i == selfIndex) continue;
+		if (g_FenceSlots[i].x == x && g_FenceSlots[i].y == y) return true;
+	}
+	return false;
+}
+
 void Fence_Draw()
 {
     for (int i = 0; i < g_FenceSlotCount; i++)
@@ -137,16 +149,31 @@ void Fence_Draw()
         if (!g_FenceSlots[i].built) continue;
 
         int textureID = g_FenceTextures[g_FenceSlots[i].role];
+        bool overlapsAnotherRegion = HasOtherSlotAt(i, g_FenceSlots[i].x, g_FenceSlots[i].y);
 
-        if (g_FenceSlots[i].role == FenceSlot_TopLeftCorner)
+        if (g_FenceSlots[i].role == FenceSlot_TopLeftCorner || g_FenceSlots[i].role == FenceSlot_TopRightCorner)
         {
-            bool connectsDown = IsSlotBuiltAt(g_FenceSlots[i].x, g_FenceSlots[i].y + PLOT_SIZE);
-            if (!connectsDown) textureID = g_FenceTextures[FenceSlot_TopLeftEnd];
+            if (overlapsAnotherRegion)
+            {
+                textureID = g_FenceTextures[FenceSlot_MiddleDown]; // sandwiched between two plots with only one gap tile
+            }
+            else
+            {
+                bool connectsDown = IsSlotBuiltAt(g_FenceSlots[i].x, g_FenceSlots[i].y + PLOT_SIZE);
+                if (!connectsDown)
+                {
+                    textureID = (g_FenceSlots[i].role == FenceSlot_TopLeftCorner)
+                        ? g_FenceTextures[FenceSlot_TopLeftEnd]
+                        : g_FenceTextures[FenceSlot_TopRightEnd];
+                }
+            }
         }
-        else if (g_FenceSlots[i].role == FenceSlot_TopRightCorner)
+        else if (g_FenceSlots[i].role == FenceSlot_LeftBottomEnd || g_FenceSlots[i].role == FenceSlot_RightBottomEnd)
         {
-            bool connectsDown = IsSlotBuiltAt(g_FenceSlots[i].x, g_FenceSlots[i].y + PLOT_SIZE);
-            if (!connectsDown) textureID = g_FenceTextures[FenceSlot_TopRightEnd];
+            if (overlapsAnotherRegion)
+            {
+                textureID = g_FenceTextures[FenceSlot_TopStraight]; // same 1-tile-gap situation, at the bottom end of a shorter column instead of the top corner
+            }
         }
 
         DrawQueue_Push(textureID,
