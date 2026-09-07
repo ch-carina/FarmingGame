@@ -21,6 +21,7 @@
 #include "input_keyboard.h"
 #include "config.h"
 #include "draw_queue.h"
+#include "Audio.h"
 #include <cstdio>
 #include <cmath>
 
@@ -53,6 +54,9 @@ static bool g_ShopOpen = false;
 static bool g_JustOpened = false;
 static int g_SelectedSlot = 0;
 static int g_PendingQty[SHOP_SLOT_COUNT];
+
+static int g_AudioID_CantBuy = -1; 
+static int g_AudioID_Bought = -1;
 
 static int g_PanelCapLeftID = TEXTURE_INVALID_ID;
 static int g_PanelCapMidID = TEXTURE_INVALID_ID;
@@ -168,6 +172,9 @@ void Shop_Initialize()
 	g_CoinTextureID = Texture_Load(L"assets/UI/coin.PNG", false);
 	g_PanelBackingTextureID = Texture_Load(L"assets/white.png", false);
 
+	g_AudioID_CantBuy = LoadAudio("assets/SFX/levelFail.wav");
+	g_AudioID_Bought = LoadAudio("assets/SFX/coin.wav");
+
 	g_ShopCollision =
 	{
 		SHOP_WIDTH,
@@ -202,6 +209,8 @@ void Shop_Finalize()
 	Texture_Release(g_SlotCapMidID);
 	Texture_Release(g_SlotCapRightID);
 	Texture_Release(g_CoinTextureID);
+	UnloadAudio(g_AudioID_CantBuy);
+	UnloadAudio(g_AudioID_Bought);
 }
 
 void Shop_Update(float delta_time)
@@ -243,6 +252,7 @@ void Shop_Update(float delta_time)
 	{
 		if (!Shop_TryBuy(g_SelectedSlot) && Shop_IsSlotUnlocked(g_SelectedSlot))
 		{
+			PlayAudio(g_AudioID_CantBuy);
 			g_ShakeSlot = g_SelectedSlot;
 			g_ShakeTimer = SHAKE_DURATION;
 		}
@@ -423,6 +433,7 @@ bool Shop_TryBuy(int index)
 	if (!SellBox_SpendMoney(cost)) return false;
 
 	Inventory_AddItem(item, qty);
+	PlayAudio(g_AudioID_Bought);
 	g_PendingQty[index] = 1;
 	return true;
 }

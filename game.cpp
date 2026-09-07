@@ -28,7 +28,6 @@
 #include "fence.h"
 #include "leaderboard.h"
 #include "sparkle.h"
-#include "game_player_interaction.h"
 
 #ifdef _DEBUG
 #include "collision_debug.h"

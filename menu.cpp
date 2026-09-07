@@ -414,14 +414,10 @@ void Menu_Draw()
 	Ground_Draw();
 	DrawMenuRabbits();
 	float titleW = (float)Texture_GetWidth(g_TextureID_MenuTitle);
-	float titleH = (float)Texture_GetHeight(g_TextureID_MenuTitle);
 	Sprite_Draw(g_TextureID_MenuTitle, SCREEN_WIDTH * 0.5f - titleW * 0.5f, TITLE_TOP_MARGIN);
 
 	if (g_MenuState == kMenuMain)
 	{
-		constexpr float TITLE_SCALE = 3.0f;
-		float startY = GetButtonBlockStartY();
-
 		for (int i = 0; i < kButtonCount; ++i)
 		{
 			bool selected = (i == g_SelectedButton);

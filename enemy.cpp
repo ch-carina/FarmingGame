@@ -45,9 +45,15 @@ static constexpr float ENEMY_SPAWN_COOLDOWN = 4.0f; //space between spawns
 static constexpr float RABBIT_FLICKER_DURATION = 1.0f;
 static constexpr float RABBIT_FLICKER_INTERVAL = 0.1f;
 
+static int g_ShadowTextureID = TEXTURE_INVALID_ID;
+static constexpr float ENEMY_SHADOW_WIDTH = ENEMY_DRAW_SIZE * 1.3f;
+static constexpr float ENEMY_SHADOW_HEIGHT = ENEMY_DRAW_SIZE * 0.6f;
+static const DirectX::XMFLOAT4 ENEMY_SHADOW_TINT{ 0.0f, 0.0f, 0.0f, 0.75f };
+
 void EnemyInitialize()
 {	
 	EnemyAnimation_Initialize();
+	g_ShadowTextureID = Texture_Load(L"assets/MC/Shadow.PNG", true);
 	g_EnemyCount = 0;
 	g_EnemySpawnTimer = 0.0f;
 }
@@ -55,6 +61,7 @@ void EnemyInitialize()
 void EnemyFinalize()
 {
 	EnemyAnimation_Finalize();
+	Texture_Release(g_ShadowTextureID);
 }
 
 void EnemyCreate(EnemyType type, EnemySpawnSide side, float targetX, float targetY, int plotIndex)
@@ -75,7 +82,7 @@ void EnemyCreate(EnemyType type, EnemySpawnSide side, float targetX, float targe
 
 	if (type == EnemyType_Mole)
 	{
-		// Mole pops up in place — no travel-in
+		// Mole pops up in place -- no travel--in
 		e.x = targetX;
 		e.y = targetY;
 		e.dirX = 0.0f;
@@ -87,7 +94,7 @@ void EnemyCreate(EnemyType type, EnemySpawnSide side, float targetX, float targe
 	}
 	else
 	{
-		float spawnX, spawnY;
+		float spawnX = 0.0f, spawnY = 0.0f;
 
 		switch (side)
 		{
@@ -215,7 +222,7 @@ CollisionCircle Enemy_GetCollisionCircle(int index)
 {
 	if (g_Enemies[index].animState == EnemyAnim_Burrow)
 	{
-		return { {0.0f, 0.0f}, 0.0f }; // still a dirt mound — no bullet collision yet
+		return { {0.0f, 0.0f}, 0.0f }; // still a dirt mound -- no bullet collision yet
 	}
 
 	const EnemySpriteInfo& info =
@@ -335,7 +342,7 @@ void EnemyUpdate(float delta_time)
 				}
 				else
 				{
-					// nothing left to eat — turn around immediately
+					// nothing left to eat -- turn around immediately
 					e.state = EnemyState_Return;
 					e.animState = EnemyAnim_Escape;
 				}
@@ -348,7 +355,7 @@ void EnemyUpdate(float delta_time)
 		{
 			CropPlot* targetPlot = CropPlot_Get(e.targetPlotIndex);
 
-			// Player touched the mole itself (not a bullet) — crop destroyed instantly, mole flees unharmed
+			// Player touched the mole itself (not a bullet) -- crop destroyed instantly, mole flees unharmed
 			if (CollisionCircle_IsOverlap(GamePlayer_GetCollisionCircle(), Enemy_GetCollisionCircle(i)))
 			{
 				if (targetPlot != nullptr && targetPlot->occupied)
@@ -363,7 +370,7 @@ void EnemyUpdate(float delta_time)
 				break;
 			}
 
-			// Left alone — mole finishes the job itself, same pacing as the other animals
+			// Left alone -- mole finishes the job itself, same pacing as the other animals
 			e.eatingTimer += delta_time;
 			if (e.eatingTimer >= 2.0f)
 			{
@@ -446,7 +453,7 @@ void EnemyUpdate(float delta_time)
 
 			CropPlot* targetPlot = CropPlot_Get(e.targetPlotIndex);
 
-			// Player touched the plot before the mole popped up — crop is safe, mole bails
+			// Player touched the plot before the mole popped up -- crop is safe, mole bails
 			if (targetPlot != nullptr &&
 				CircleVsBox(GamePlayer_GetCollisionCircle(), targetPlot->cropCollision))
 			{
@@ -492,6 +499,21 @@ void EnemyDraw()
 		int sourceX = column * anim.frameWidth;
 		int sourceY = row * anim.frameHeight;
 
+		if (e.type == EnemyType_Rabbit)
+		{
+			int shadowTexW = (int)Texture_GetWidth(g_ShadowTextureID);
+			int shadowTexH = (int)Texture_GetHeight(g_ShadowTextureID);
+
+			float shadowCenterX = e.x + ENEMY_DRAW_SIZE * 0.5f;
+			float shadowCenterY = e.y + ENEMY_DRAW_SIZE - 10.0f;
+
+			DrawQueue_Push(g_ShadowTextureID,
+				shadowCenterX - ENEMY_SHADOW_WIDTH * 0.5f, shadowCenterY - ENEMY_SHADOW_HEIGHT * 0.5f,
+				ENEMY_SHADOW_WIDTH, ENEMY_SHADOW_HEIGHT,
+				0, 0, shadowTexW, shadowTexH,
+				e.y + ENEMY_DRAW_SIZE - 0.1f,
+				0.0f, ENEMY_SHADOW_TINT);
+		}
 		DrawQueue_Push(anim.textureID, e.x, e.y, ENEMY_DRAW_SIZE, ENEMY_DRAW_SIZE,
 			sourceX, sourceY, anim.frameWidth, anim.frameHeight,
 			e.y + ENEMY_DRAW_SIZE);

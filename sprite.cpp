@@ -120,7 +120,6 @@ bool Sprite_Initialize()
     blend_desc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
 
     blend_desc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-    ID3D11BlendState* pBlendState = nullptr;
 
     //color (RGB) = srcRGB * srcAlpha + dest  * (1-srcAlpha)
 

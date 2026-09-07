@@ -162,7 +162,7 @@ bool Upgrade_IsChoiceActive()
     return g_ChoiceActive;
 }
 
-void Upgrade_Update(float delta_time)
+void Upgrade_Update(float)
 {
     if (!g_ChoiceActive) return;
 

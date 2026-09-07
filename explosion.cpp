@@ -114,7 +114,7 @@ void Explosion_Draw()
 		if (e.isActive)
 		{
 			FlipBookAnimation_DrawEx(e.flipbookAnimationID, e.x, e.y,
-				g_ExplosionInfo[e.type].patternWidth, g_ExplosionInfo[e.type].patternHeight);
+				(float)g_ExplosionInfo[e.type].patternWidth, (float)g_ExplosionInfo[e.type].patternHeight);
 		}
 	}
 }

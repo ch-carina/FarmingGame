@@ -49,7 +49,7 @@ static int g_ButtonCapMidID = TEXTURE_INVALID_ID;
 static int g_ButtonCapRightID = TEXTURE_INVALID_ID;
 static float g_ButtonCapWidth = 0.0f;
 
-static constexpr float RESULT_PANEL_WIDTH = 520.0f;
+static constexpr float RESULT_PANEL_WIDTH = 700.0f;
 static constexpr float RESULT_PANEL_HEIGHT = 260.0f;
 
 static int g_CheckpointMoney = 0;
@@ -114,7 +114,7 @@ static constexpr ShopItem g_Level1ShopItems[] =
 
 static constexpr PlotRegion g_Level2Regions[] =
 {
-    { 1, 4, 2, 2 },
+    { 1, 2, 2, 2 },
     { 4, 2, 3, 3 },
     { 8, 1, 2, 2 },   // second 2x2 plot
     { 11, 4, 2, 2 },

@@ -30,7 +30,7 @@ void Results_Finalize()
 	Texture_Release(g_TextureID_ResultsBG);
 }
 
-void Results_Update(float delta_time)
+void Results_Update(float)
 {
 	if (InputKeyboard_IsTrigger(KK_ENTER))
 	{
